@@ -7,3 +7,6 @@ build.err.log
 *.timestamp-*.mjs
 .DS_Store
 Thumbs.db
+
+FIFA14-TEST.txt
+FIFA14-Ultra-Installer/
