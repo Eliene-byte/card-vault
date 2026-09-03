@@ -2,6 +2,7 @@
   "name": "card-vault",
   "version": "1.4.0",
   "description": "Card Vault — cofre de cartões open source 100% gratuito, offline-first, AES-GCM local",
+  "author": { "name": "Card Vault contributors", "email": "cardvault@local" },
   "license": "MIT",
   "type": "module",
   "main": "electron/main.js",

@@ -20,6 +20,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run sync:dist
       - run: dir dist
+      - name: Defender exclusion (evita travar o .exe no build)
+        run: Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE
       - run: npx electron-builder --win portable nsis --x64 --publish never
       - uses: actions/upload-artifact@v4
         with:
