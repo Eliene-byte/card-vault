@@ -1,0 +1,9 @@
+node_modules/
+dist/
+release/
+cache/
+build.log
+build.err.log
+*.timestamp-*.mjs
+.DS_Store
+Thumbs.db

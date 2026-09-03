@@ -1,0 +1,30 @@
+{
+  "name": "card-vault",
+  "version": "1.4.0",
+  "description": "Card Vault — cofre de cartões open source 100% gratuito, offline-first, AES-GCM local",
+  "license": "MIT",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:electron": "vite --port 5173 --strictPort",
+    "app": "electron .",
+    "build": "vite build",
+    "sync:dist": "node scripts/sync-dist.mjs",
+    "dist": "npm run sync:dist && electron-builder --win portable --x64",
+    "dist:setup": "npm run sync:dist && electron-builder --win nsis --x64",
+    "build:electron": "npm run sync:dist && electron-builder --win --x64",
+    "mobile:init": "npx cap add android && npx cap sync android",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8",
+    "electron": "^32.2.0",
+    "electron-builder": "^25.1.8",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/android": "^8.0.0"
+  }
+}

@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Card Vault — Cofre de Cartões Open Source</title>
+<meta name="description" content="Card Vault: cofre de cartões 100% gratuito, open source MIT, offline-first, criptografia AES-GCM local." />
+<meta name="theme-color" content="#F7F7F5" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="256x256" href="icon.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A0A0B;--bg2:#131315;--bg3:#1B1B1E;--bg4:#26262B;
+  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);
+  --text:#F4F4F5;--muted:#A1A1AA;--muted2:#6E6E76;
+  --accent:#8B93F8;--accent2:#A5ABFF;--green:#34D17B;--red:#FF6B6B;--yellow:#FFC531;--blue:#3EA6FF;
+  --ring:rgba(255,255,255,.14);
+  --radius:12px;--radius2:18px;--shadow:0 8px 30px rgba(0,0,0,.35);
+  --font:Inter,"Segoe UI Variable","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,monospace;
+  --spring:cubic-bezier(.22,1,.36,1);
+}
+[data-theme="light"]{
+  --bg:#F7F7F5;--bg2:#FFFFFF;--bg3:#F1F1EE;--bg4:#E8E8E4;
+  --line:rgba(0,0,0,.07);--line2:rgba(0,0,0,.12);
+  --text:#18181B;--muted:#63636B;--muted2:#A3A3AB;
+  --accent:#4A56E2;--accent2:#6E7CF3;
+  --ring:rgba(0,0,0,.08);
+  --shadow:0 8px 30px rgba(0,0,0,.07);
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;font-size:13.5px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"cv11","ss01";font-variant-numeric:tabular-nums}
+body,.sidebar,.topbar,.stats,.stat,.modal-card,.lock-card,.search,.field input,.field select,.bank-opt,.set-row,.nav-btn,.chip,.mini,.icon-btn,.btn-add{transition:background-color .3s ease,color .2s ease,border-color .3s ease}
+::selection{background:var(--text);color:var(--bg)}
+button{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:99px;border:2px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ===== LOCK ===== */
+#lock{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--bg);padding:20px}
+#lock.hidden{display:none}
+.lock-card{width:min(400px,94vw);background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:36px 32px;box-shadow:var(--shadow);text-align:center;animation:fadeUp .5s var(--spring) both}
+.lock-logo{width:44px;height:44px;border-radius:13px;margin:0 auto 18px;display:grid;place-items:center;font-size:20px;background:var(--text);color:var(--bg)}
+.lock-card h1{font-size:21px;letter-spacing:-.025em;font-weight:650}
+.lock-card h1 span{color:inherit}
+.lock-card p{color:var(--muted);font-size:13px;margin:8px 0 20px;line-height:1.55}
+.lock-card input{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-size:13.5px;outline:none;margin-bottom:10px;font-family:inherit}
+.lock-card input:focus{border-color:var(--line2);box-shadow:0 0 0 3px var(--ring)}
+.btn{border:none;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.01em}
+.btn-primary{background:var(--text);color:var(--bg);width:100%}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.5;pointer-events:none}
+.btn-ghost{background:var(--bg3);border:1px solid transparent;color:var(--text)}
+.btn-ghost:hover{background:var(--bg4)}
+.btn-danger{background:rgba(255,93,93,.12);border:1px solid rgba(255,93,93,.35);color:var(--red)}
+.btn-danger:hover{background:rgba(255,93,93,.2)}
+.btn-sm{padding:8px 12px;font-size:12px;border-radius:10px}
+.strength{height:5px;border-radius:99px;background:var(--bg4);margin:2px 0 12px;overflow:hidden}
+.strength i{display:block;height:100%;width:0;border-radius:99px;background:var(--red);transition:.25s}
+.eyebrow{font-size:10px;letter-spacing:.22em;font-weight:700;color:var(--muted2);margin-bottom:10px}
+.lock-card.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+.lock-foot{margin-top:16px;font-size:11.5px;color:var(--muted2);line-height:1.6}
+.lock-foot b{color:var(--muted)}
+#lockError{display:none;background:rgba(255,93,93,.1);border:1px solid rgba(255,93,93,.3);color:var(--red);font-size:12.5px;padding:10px;border-radius:10px;margin-bottom:10px}
+
+/* ===== SHELL ===== */
+#app{height:100vh;display:flex;opacity:0;pointer-events:none;transition:.25s}
+#app.unlocked{opacity:1;pointer-events:auto}
+.sidebar{width:224px;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 12px;gap:2px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 18px}
+.brand-mark{width:30px;height:30px;border-radius:9px;background:var(--text);display:grid;place-items:center;color:var(--bg);font-size:15px}
+.brand b{font-size:13.5px;letter-spacing:-.015em;display:block;font-weight:650}
+.brand small{font-size:9.5px;color:var(--muted2);letter-spacing:.1em;font-weight:600}
+.nav-label{font-size:9.5px;letter-spacing:.14em;color:var(--muted2);font-weight:600;padding:14px 10px 6px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:.13s;text-align:left}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--bg3);color:var(--text);font-weight:600}
+.nav-btn .ico{width:24px;height:24px;border-radius:7px;background:transparent;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.nav-btn.active .ico{background:var(--text);color:var(--bg)}
+.nav-btn .count{margin-left:auto;background:transparent;border:none;font-size:11.5px;padding:0;color:var(--muted2);font-variant-numeric:tabular-nums}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.secure-box{background:transparent;border:none;border-top:1px solid var(--line);border-radius:0;padding:12px 10px 4px;font-size:11px;color:var(--muted2);line-height:1.6}
+.secure-box b{color:var(--muted);display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px;font-weight:600}
+.secure-box .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:64px;display:flex;align-items:center;gap:12px;padding:0 28px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg)}
+.topbar h2{font-size:16px;letter-spacing:-.02em;white-space:nowrap;font-weight:650}
+.topbar h2 small{display:block;font-size:11px;color:var(--muted2);font-weight:450;letter-spacing:0;margin-top:1px}
+.search{flex:1;max-width:440px;margin:0 auto;display:flex;align-items:center;gap:9px;background:var(--bg3);border:1px solid transparent;border-radius:10px;padding:0 13px;height:38px;transition:.15s}
+.search:focus-within{background:var(--bg2);border-color:var(--line2)}
+.search input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:inherit}
+.search input::placeholder{color:var(--muted2)}
+.top-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:38px;height:38px;border-radius:10px;background:transparent;border:1px solid transparent;display:grid;place-items:center;cursor:pointer;color:var(--muted);font-size:15px;transition:.13s}
+.icon-btn:hover{background:var(--bg3);color:var(--text)}
+.btn-add{background:var(--text);color:var(--bg);border:none;border-radius:10px;height:38px;padding:0 16px;font-weight:600;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;white-space:nowrap}
+.btn-add:hover{opacity:.85}
+
+.content{flex:1;overflow:auto;padding:28px 32px 48px;max-width:1180px;width:100%;margin:0 auto}
+.stats{display:flex;gap:0;margin-bottom:20px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stat{flex:1;padding:14px 20px;display:flex;align-items:center;gap:12px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:none}
+.stat i{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;flex-shrink:0}
+.stat b{font-size:17px;display:block;letter-spacing:-.02em;font-weight:650;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.chip{padding:7px 13px;border-radius:99px;background:transparent;border:1px solid var(--line);font-size:12px;font-weight:550;color:var(--muted);cursor:pointer;transition:.13s}
+.chip:hover{color:var(--text);border-color:var(--line2)}
+.chip.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip.brand-chip{display:flex;align-items:center;gap:7px}
+.chip .cdot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px 20px}
+.card3d{perspective:1400px;cursor:pointer}
+.card-inner{position:relative;border-radius:18px;padding:22px 22px 20px;min-height:212px;aspect-ratio:1.586;color:#fff;overflow:hidden;transition:transform .18s ease,box-shadow .18s;box-shadow:0 10px 28px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;justify-content:space-between;background:var(--card-bg,#3A4150)}
+.card-inner.light-ink{color:#101418;text-shadow:none}
+.card3d:hover .card-inner{box-shadow:0 16px 40px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.22)}
+.card-inner::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(600px 220px at 85% -20%,rgba(255,255,255,.28),transparent 60%),
+  radial-gradient(420px 320px at -10% 120%,rgba(0,0,0,.35),transparent 60%),
+  var(--card-sheen,transparent);pointer-events:none}
+.card-inner::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.045) 0 2px,transparent 2px 7px);pointer-events:none;mix-blend-mode:overlay}
+.card-holo{position:absolute;right:18px;bottom:52px;width:52px;height:38px;border-radius:7px;background:conic-gradient(from 200deg,#f5c86e,#9be2ff,#e3a6ff,#b6ffd0,#f5c86e);opacity:.85;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);pointer-events:none}
+.card-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.bank-logo{font-size:16px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;text-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.bank-logo .blogo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;font-weight:900;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);flex-shrink:0;font-style:normal}
+.type-badge{font-size:9.5px;font-weight:800;letter-spacing:.14em;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:5px 10px;border-radius:99px;backdrop-filter:blur(4px)}
+.card-mid{display:flex;align-items:center;gap:12px;margin:14px 0 10px;position:relative;z-index:1}
+.card-chip{width:48px;height:36px;border-radius:8px;background:linear-gradient(135deg,#F8DC8F 0%,#D9A83E 30%,#B8860B 50%,#F0C96A 70%,#8A6508 100%);position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4);flex-shrink:0;overflow:hidden}
+.card-chip::before{content:"";position:absolute;inset:5px;border:1.5px solid rgba(0,0,0,.35);border-radius:5px}
+.card-chip::after{content:"";position:absolute;left:5px;right:5px;top:50%;height:1.5px;background:rgba(0,0,0,.35)}
+.card-chip i{position:absolute;top:5px;bottom:5px;left:50%;width:1.5px;background:rgba(0,0,0,.35)}
+.card-contactless{font-size:19px;letter-spacing:-4px;transform:rotate(90deg);opacity:.85;font-weight:300}
+.card-num{font-family:var(--mono);font-size:18.5px;letter-spacing:.14em;font-weight:600;text-shadow:0 2px 10px rgba(0,0,0,.4);position:relative;z-index:1;margin-bottom:12px}
+.card-bottom{display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1;gap:10px}
+.card-holder{font-size:9px;opacity:.72;letter-spacing:.18em;font-weight:700}
+.card-holder b{display:block;font-size:13.5px;opacity:1;letter-spacing:.05em;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;font-weight:600}
+.card-exp{font-size:9px;opacity:.72;letter-spacing:.18em;font-weight:700;text-align:center}
+.card-exp b{display:block;font-family:var(--mono);font-size:13px;opacity:1;margin-top:3px}
+.brand-mark-card{display:flex;align-items:center;min-height:34px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.mc{display:flex;align-items:center}
+.mc i{width:30px;height:30px;border-radius:50%;display:block}
+.mc i:first-child{background:#EB001B;margin-right:-11px}
+.mc i:last-child{background:#F79E1B;mix-blend-mode:normal;opacity:.92}
+.visa{font-style:italic;font-weight:900;font-size:21px;letter-spacing:.08em;color:#fff}
+.visa.light{color:#1A1F71}
+.elo-chip{display:flex;align-items:center;gap:0}
+.elo-chip i{width:22px;height:22px;border-radius:50%}
+.elo-chip i:nth-child(1){background:#FFD200}.elo-chip i:nth-child(2){background:#E30613;margin-left:-8px;opacity:.9}.elo-chip i:nth-child(3){background:#0091DA;margin-left:-8px;opacity:.9}
+.elo-txt{font-weight:800;font-size:15px;margin-left:5px;letter-spacing:-.02em}
+.card-nick{margin-top:10px;padding:0 4px;display:flex;align-items:center;justify-content:space-between}
+.card-nick span{font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.card-nick small{font-size:11px;color:var(--muted2);font-family:var(--mono);font-variant-numeric:tabular-nums}
+.card-actions{display:flex;gap:6px;padding:0 4px}
+.mini{border:1px solid transparent;background:var(--bg3);color:var(--muted);border-radius:8px;padding:7px 11px;font-size:11.5px;font-weight:550;cursor:pointer;transition:.13s}
+.mini:hover{color:var(--text);background:var(--bg4)}
+.card-wrap{background:transparent;border:none;border-radius:0;padding:0;transition:transform .22s var(--spring)}
+.card-wrap:hover{transform:translateY(-3px)}
+.card-wrap:hover .card-nick span{color:var(--text)}
+.card-enter{animation:fadeUp .45s var(--spring) both}
+.btn:active,.btn-add:active,.icon-btn:active,.mini:active,.chip:active,.copy-btn:active,.nav-btn:active{transform:scale(.96)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.skel{height:46px;border-radius:10px;margin:6px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:400px 100%;animation:shimmer 1.2s infinite linear}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.empty{grid-column:1/-1;text-align:center;padding:60px 20px;border:1.5px dashed var(--line2);border-radius:20px;color:var(--muted)}
+.empty .big{font-size:40px;margin-bottom:12px}
+.empty h3{color:var(--text);margin-bottom:6px}
+.empty p{font-size:13px;max-width:420px;margin:0 auto 18px;line-height:1.6}
+
+/* ===== BANK-TRUE ART — cada banco com a cara do cartão real ===== */
+.card-pat{position:absolute;inset:0;pointer-events:none}
+.pat-stripes{background:repeating-linear-gradient(115deg,rgba(255,255,255,.10) 0 14px,transparent 14px 34px)}
+.pat-wave{background:radial-gradient(460px 210px at 110% 125%,var(--pacc,rgba(255,140,0,.55)) 0 42%,transparent 43%),radial-gradient(320px 170px at -10% -20%,rgba(255,255,255,.20),transparent 60%)}
+.pat-carbon{background:repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 3px,transparent 3px 6px),repeating-linear-gradient(90deg,rgba(255,255,255,.055) 0 3px,transparent 3px 6px)}
+.pat-rays{background:conic-gradient(from 210deg at 82% 8%,rgba(255,255,255,.18),transparent 30%,rgba(255,255,255,.10) 45%,transparent 60%,rgba(255,255,255,.15) 75%,transparent 90%)}
+.pat-dots{background-image:radial-gradient(rgba(255,255,255,.22) 1.4px,transparent 1.6px);background-size:16px 16px}
+.card-num.emboss{text-shadow:0 1px 0 rgba(255,255,255,.30),0 -1px 2px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.35)}
+.bank-logo .blogo.bare{background:transparent;border:none;font-size:20px;padding:0}
+.bank-logo.solo{font-size:17px;font-weight:800;letter-spacing:-.02em;text-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+.bank-logo .blogo.outline{background:transparent;border:1.5px solid currentColor}
+.bank-logo .bname{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* ===== LANG MENU ===== */
+.lang-wrap{position:relative}
+.lang-menu{position:absolute;right:0;top:48px;background:var(--bg2);border:1px solid var(--line2);border-radius:14px;box-shadow:var(--shadow);min-width:180px;padding:6px;display:none;z-index:60}
+.lang-menu.open{display:block}
+.lang-menu button{display:flex;width:100%;gap:10px;align-items:center;background:transparent;border:none;color:var(--text);padding:10px 12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
+.lang-menu button:hover{background:var(--bg3)}
+.lang-menu button.sel{background:var(--bg3);outline:1px solid var(--line2)}
+
+/* ===== MODAL ===== */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);display:none;place-items:center;z-index:80;padding:18px}
+.modal.open{display:grid}
+.modal{animation:fade .18s ease}
+.modal-card{width:min(560px,96vw);max-height:90vh;overflow:hidden;background:var(--bg2);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;animation:pop .34s var(--spring)}
+.modal-card.wide{width:min(680px,96vw)}
+@keyframes pop{from{transform:scale(.95) translateY(14px);opacity:0}}
+@keyframes fade{from{opacity:0}}
+@keyframes fadeUp{from{transform:translateY(10px);opacity:0}}
+@keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+.modal-head{padding:20px 22px 0;display:flex;justify-content:space-between;align-items:start;gap:12px}
+.modal-head h3{font-size:16px;letter-spacing:-.01em}
+.modal-head p{font-size:12.5px;color:var(--muted);margin-top:4px}
+.modal-body{padding:18px 22px 22px;overflow:auto;display:flex;flex-direction:column;gap:13px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1px solid transparent;border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:.13s}
+.field input:focus,.field select:focus,.field textarea:focus{background:var(--bg2);border-color:var(--line2);box-shadow:0 0 0 3px var(--ring)}
+.field input.mono{font-family:var(--mono);letter-spacing:.08em}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px}
+.hint{font-size:11.5px;margin-top:6px;line-height:1.5}
+.hint.ok{color:var(--green)}.hint.err{color:var(--red)}.hint.mut{color:var(--muted2)}
+.brand-detect{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:700}
+.brand-detect .bd{padding:5px 11px;border-radius:99px;background:var(--bg4);border:1px solid var(--line2);display:inline-flex;align-items:center;gap:7px}
+.seg{display:flex;background:transparent;border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:none;background:transparent;color:var(--muted);padding:9px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+.seg button.active{background:var(--text);color:var(--bg)}
+.bank-list{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg3);display:flex;flex-direction:column}
+.bank-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12.5px;transition:.1s}
+.bank-opt:last-child{border-bottom:none}
+.bank-opt:hover{background:var(--bg4)}
+.bank-opt.sel{background:var(--bg4);box-shadow:inset 2px 0 0 var(--text)}
+.bank-opt .bcode{font-family:var(--mono);font-size:11px;background:var(--bg4);border:1px solid var(--line);padding:3px 8px;border-radius:7px;color:var(--muted)}
+.bank-opt .bdot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.bank-sec{font-size:10px;letter-spacing:.12em;font-weight:800;color:var(--muted2);padding:10px 12px 4px;position:sticky;top:0;background:var(--bg3)}
+.modal-foot{padding:0 22px 22px;display:flex;gap:10px}
+.modal-foot .btn{flex:1;padding:13px}
+.preview-mini{border-radius:18px;padding:22px 22px 20px;color:#fff;min-height:212px;aspect-ratio:1.586;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.12);position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22)}
+.preview-mini::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 220px at 85% -20%,rgba(255,255,255,.28),transparent 60%),radial-gradient(420px 320px at -10% 120%,rgba(0,0,0,.35),transparent 60%);pointer-events:none}
+.preview-mini::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.045) 0 2px,transparent 2px 7px);pointer-events:none;mix-blend-mode:overlay}
+.preview-mini>*{position:relative;z-index:1}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:13px 2px}
+.set-row b{font-size:13px;display:block;font-weight:600}
+.set-row small{font-size:11.5px;color:var(--muted2);display:block;margin-top:2px;line-height:1.5}
+.set-row select,.set-row input[type="number"]{background:var(--bg4);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12.5px;outline:none}
+.switch{width:44px;height:25px;border-radius:99px;background:var(--bg4);border:1px solid var(--line2);position:relative;cursor:pointer;transition:.15s;flex-shrink:0}
+.switch.on{background:var(--green);border-color:var(--green)}
+.switch::after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.15s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.switch.on::after{left:21px}
+.detail-grid{background:transparent;border:none;border-top:1px solid var(--line);border-radius:0;overflow:hidden}
+.detail-line{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.detail-line:last-child{border-bottom:none}
+.detail-line span{color:var(--muted);font-size:12px;font-weight:600}
+.detail-line b{font-family:var(--mono);letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.copy-btn{background:var(--bg4);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:11px;padding:5px 9px;cursor:pointer;font-weight:700}
+.copy-btn:hover{color:var(--text)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px) scale(.97);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:99px;font-size:12.5px;font-weight:600;opacity:0;pointer-events:none;transition:.3s var(--spring);z-index:200;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+@media(max-width:1000px){.sidebar{display:none}.stats{grid-template-columns:repeat(2,1fr)}.row3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- ============ LOCK ============ -->
+<div id="lock">
+  <div class="lock-card">
+    <div class="lock-logo">◈</div>
+    <div class="eyebrow" id="lockTag">ACESSO AO COFRE</div>
+    <h1>Card <span>Vault</span></h1>
+    <p id="lockText">Cofre de cartões 100% local e open source.<br>Crie uma <b style="color:var(--text)">senha-mestra</b> — só ela descriptografa seus cartões (AES-GCM).</p>
+    <div id="lockError"></div>
+    <input type="password" id="pw1" data-i18n-ph="pw_ph" placeholder="Senha-mestra (mín. 8 caracteres)" autocomplete="new-password" />
+    <input type="password" id="pw2" data-i18n-ph="pw2_ph" placeholder="Confirmar senha-mestra" autocomplete="new-password" style="display:none" />
+    <div class="strength"><i id="strBar"></i></div>
+    <button class="btn btn-primary" id="lockBtn" onclick="handleLock()">Criar cofre →</button>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:center"><button class="mini" id="lockThemeBtn" onclick="cycleTheme()" style="padding:8px 14px">☾ Tema escuro</button><button class="mini" onclick="cycleLang()" style="padding:8px 14px" title="Language / Idioma">🌐 <span id="lockLangLabel">PT</span></button></div>
+    <div class="lock-foot"><span data-i18n="lock_foot">🔒 PBKDF2 250.000 iterações + AES-GCM 256<br>Nada sai do seu notebook • <b>Sem conta • Sem nuvem • MIT</b></span><br><span id="nativeBadge"></span></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">◈</div><div><b>Card Vault</b><small>OPEN SOURCE • MIT</small></div></div>
+    <div class="nav-label" data-i18n="manage">GERENCIAR</div>
+    <button class="nav-btn active" data-view="cards" onclick="setView('cards',this)"><span class="ico">▭</span> <span data-i18n="cards">Meus cartões</span> <span class="count" id="navCount">0</span></button>
+    <button class="nav-btn" onclick="openForm()"><span class="ico">＋</span> <span data-i18n="add">Adicionar</span></button>
+    <button class="nav-btn" data-view="settings" onclick="openSettings()"><span class="ico">⚙</span> <span data-i18n="settings">Configurações</span></button>
+    <div class="nav-label" data-i18n="sec">SEGURANÇA</div>
+    <button class="nav-btn" onclick="toggleMaskAll()" id="maskBtn"><span class="ico">◉</span> <span id="maskLabel">Ocultar números</span></button>
+    <button class="nav-btn" onclick="lockNow()"><span class="ico">🔒</span> <span data-i18n="lock_now">Bloquear agora</span></button>
+    <div class="side-foot">
+      <div class="secure-box"><b><span class="dot"></span> <span data-i18n="vault_locked">Cofre criptografado</span></b><span id="secInfo">AES-GCM 256 • PBKDF2<br>Auto-bloqueio em 3 min</span></div>
+      <div style="font-size:10.5px;color:var(--muted2);text-align:center"><span data-i18n="ver">v1.2 • MIT • 100% offline</span><br><span data-i18n="ver2">só BrasilAPI p/ bancos</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2><span id="viewTitle" data-i18n="title">Meus cartões</span><small id="viewSub">0 cartões • clique num cartão para ver detalhes</small></h2>
+      <div class="search"><span style="color:var(--muted2)">⌕</span><input id="q" data-i18n-ph="search_ph" placeholder="Buscar por titular, banco, apelido ou final..." oninput="render()" /></div>
+      <div class="top-actions">
+        <div class="lang-wrap"><button class="icon-btn" onclick="document.getElementById('langMenu').classList.toggle('open')" title="Language / Idioma">🌐</button>
+          <div class="lang-menu" id="langMenu"><button data-lang="pt" onclick="setLang('pt')">🇧🇷 Português</button><button data-lang="en" onclick="setLang('en')">🇺🇸 English</button><button data-lang="es" onclick="setLang('es')">🇪🇸 Español</button></div>
+        </div>
+        <button class="icon-btn" id="themeBtn" onclick="cycleTheme()" title="Alternar tema claro / escuro">☾</button>
+        <button class="icon-btn" onclick="openSettings()" data-i18n-title="settings" title="Configurações">⚙</button>
+        <button class="btn-add" onclick="openForm()" data-i18n="new">＋ Novo cartão</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats">
+        <div class="stat"><i style="background:var(--bg3);border:1px solid var(--line)">▭</i><div><b id="stTotal">0</b><span data-i18n="st_total">Total de cartões</span></div></div>
+        <div class="stat"><i style="background:var(--bg3);border:1px solid var(--line)">◈</i><div><b id="stCred">0</b><span data-i18n="st_credit">Crédito</span></div></div>
+        <div class="stat"><i style="background:var(--bg3);border:1px solid var(--line)">⬣</i><div><b id="stDeb">0</b><span data-i18n="st_debit">Débito</span></div></div>
+        <div class="stat"><i style="background:var(--bg3);border:1px solid var(--line)">✦</i><div><b id="stBanks">0</b><span data-i18n="st_banks">Bancos diferentes</span></div></div>
+      </div>
+      <div class="chips" id="brandChips"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FORM ============ -->
+<div class="modal" id="formModal" onclick="if(event.target===this)closeForm()">
+  <div class="modal-card wide">
+    <div class="modal-head"><div><h3 id="formTitle">＋ Novo cartão</h3><p data-i18n="form_sub">Número nunca sai do notebook — salvo só criptografado.</p></div><button class="icon-btn" onclick="closeForm()">✕</button></div>
+    <div class="modal-body">
+      <div class="preview-mini" id="livePreview"></div>
+      <div class="field"><label data-i18n="f_nick">Apelido do cartão</label><input id="f_nick" data-i18n-ph="f_nick_ph" placeholder="Ex: Nubank Roxinho, Inter Black..." maxlength="32" oninput="livePreview()" /></div>
+      <div class="field"><label data-i18n="f_bank">Banco — busque na lista oficial (API gratuita, sem chave)</label>
+        <input id="bankSearch" data-i18n-ph="f_bank_ph" placeholder="⌕ Digite: nubank, itaú, bradesco, wise..." oninput="renderBankList(this.value)" autocomplete="off" />
+        <div class="bank-list" id="bankList" style="margin-top:8px"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+        <div class="hint mut" id="bankStatus">Carregando bancos...</div>
+      </div>
+      <div class="field"><label data-i18n="f_num">Número do cartão</label>
+        <input id="f_num" class="mono" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="23" oninput="onNumInput()" />
+        <div class="brand-detect"><span style="color:var(--muted);font-weight:500" data-i18n="f_flag">Bandeira:</span><span class="bd" id="brandBadge">— auto-detectar —</span><span class="hint mut" id="luhnHint"></span></div>
+      </div>
+      <div class="field"><label data-i18n="f_holder">Titular (como impresso)</label><input id="f_holder" placeholder="EX: MARIA S OLIVEIRA" maxlength="40" style="text-transform:uppercase" oninput="livePreview()" /></div>
+      <div class="row3">
+        <div class="field"><label data-i18n="f_exp">Validade</label><input id="f_exp" class="mono" placeholder="MM/AA" maxlength="5" inputmode="numeric" oninput="onExpInput();livePreview()" /><div class="hint mut" id="expHint"></div></div>
+        <div class="field"><label data-i18n="f_cvv">CVV</label><input id="f_cvv" class="mono" type="password" placeholder="•••" maxlength="4" inputmode="numeric" oninput="onCvvInput()" /><div class="hint mut" id="cvvHint" data-i18n="f_cvv_h">Oculto sempre</div></div>
+        <div class="field"><label data-i18n="f_type">Tipo</label><div class="seg"><button id="segC" class="active" onclick="setType('credito')">Crédito</button><button id="segD" onclick="setType('debito')">Débito</button></div></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeForm()" data-i18n="cancel">Cancelar</button><button class="btn btn-primary" id="saveBtn" onclick="saveCard()" data-i18n="save">Salvar criptografado 🔒</button></div>
+  </div>
+</div>
+
+<!-- ============ DETAIL ============ -->
+<div class="modal" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-card">
+    <div class="modal-head"><div><h3 id="d_nick">Cartão</h3><p id="d_sub">—</p></div><button class="icon-btn" onclick="closeDetail()">✕</button></div>
+    <div class="modal-body">
+      <div class="preview-mini" id="detailPreview"></div>
+      <div class="detail-grid" id="detailGrid"></div>
+      <div class="hint mut" id="clipNote">📋 Copiar limpa a área de transferência em <b id="clipHint">15</b>s. CVV fica oculto por padrão.</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="editFromDetail()" data-i18n="edit">✎ Editar</button><button class="btn btn-danger" onclick="delCurrent()" data-i18n="del">🗑 Excluir</button></div>
+  </div>
+</div>
+
+<!-- ============ SETTINGS ============ -->
+<div class="modal" id="setModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-card">
+    <div class="modal-head"><div><h3 data-i18n="s_title">⚙ Configurações</h3><p data-i18n="s_sub">Clean, local e sob seu controle.</p></div><button class="icon-btn" onclick="closeSettings()">✕</button></div>
+    <div class="modal-body">
+      <div class="set-row"><div><b data-i18n="s_lang">Idioma</b><small data-i18n="s_lang_d">Language • Idioma da interface</small></div><select id="s_lang" onchange="setLang(this.value)"><option value="pt">🇧🇷 Português</option><option value="en">🇺🇸 English</option><option value="es">🇪🇸 Español</option></select></div>
+      <div class="set-row"><div><b data-i18n="s_theme">Aparência</b><small data-i18n="s_theme_d">Claro, escuro ou sistema</small></div><select id="s_theme" onchange="saveSettings()"><option value="dark">Escuro</option><option value="light">Claro</option><option value="system">Sistema</option></select></div>
+      <div class="set-row"><div><b data-i18n="s_lock">Auto-bloqueio</b><small data-i18n="s_lock_d">Bloqueia o cofre após inatividade</small></div><select id="s_lock" onchange="saveSettings()"><option value="1">1 min</option><option value="3" selected>3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="0">Nunca</option></select></div>
+      <div class="set-row"><div><b data-i18n="s_clip">Limpar área de transferência</b><small data-i18n="s_clip_d">Apaga número copiado após N segundos</small></div><select id="s_clip" onchange="saveSettings()"><option value="10">10 s</option><option value="15" selected>15 s</option><option value="30">30 s</option><option value="60">60 s</option></select></div>
+      <div class="set-row"><div><b data-i18n="s_mask">Mascarar números</b><small data-i18n="s_mask_d">Mostra só os 4 últimos por padrão</small></div><div class="switch on" id="s_mask" onclick="this.classList.toggle('on');saveSettings()"></div></div>
+      <div class="set-row"><div><b data-i18n="s_bak">Backup criptografado</b><small data-i18n="s_bak_d">Exporta .json cifrado (precisa da senha-mestra)</small></div><button class="btn btn-ghost btn-sm" onclick="exportBackup()" data-i18n="export">⬇ Exportar</button></div>
+      <div class="set-row"><div><b data-i18n="s_res">Restaurar backup</b><small data-i18n="s_res_d">Importa arquivo exportado acima</small></div><label class="btn btn-ghost btn-sm" style="cursor:pointer"><span data-i18n="import">⬆ Importar</span><input type="file" id="importFile" accept=".json" hidden onchange="importBackup(this)" /></label></div>
+      <div class="set-row"><div><b data-i18n="s_pw">Trocar senha-mestra</b><small data-i18n="s_pw_d">Re-criptografa tudo com a nova senha</small></div><button class="btn btn-ghost btn-sm" onclick="changePassword()" data-i18n="change">Trocar</button></div>
+      <div class="set-row" style="border-color:rgba(255,93,93,.35)"><div><b style="color:var(--red)" data-i18n="s_wipe">Apagar tudo</b><small data-i18n="s_wipe_d">Remove cofre + cartões deste notebook</small></div><button class="btn btn-danger btn-sm" onclick="wipeAll()" data-i18n="erase">Apagar</button></div>
+      <div class="secure-box"><b><span class="dot"></span> <span id="bankSrc">Bancos: BrasilAPI (grátis, sem chave)</span></b><span data-i18n="sec_note">Cartões: só AES-GCM local. Nenhum dado sensível sai do device — a única chamada de rede é a lista pública de bancos.</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ================= ESTADO =================
+const $ = id => document.getElementById(id);
+let VAULT_KEY = null, CARDS = [], SALT_B64 = null;
+let editingId = null, detailId = null, formType = 'credito', formBank = null;
+let brandFilter = 'all', masked = true, settings = { theme:'light', lockMin:3, clipSec:15, lang:'pt' };
+let idleTimer = null, clipTimer = null;
+try { Object.assign(settings, JSON.parse(localStorage.getItem('cardvault.prefs') || '{}')); } catch {}
+masked = settings.masked !== false;
+if (!['pt','en','es'].includes(settings.lang)) settings.lang = 'pt';
+
+// ================= MULTILÍNGUAGEM (PT / EN / ES) =================
+const LANGS = { pt:'Português', en:'English', es:'Español' };
+const I18N = {
+pt:{manage:'GERENCIAR',cards:'Meus cartões',add:'Adicionar',settings:'Configurações',sec:'SEGURANÇA',lock_now:'Bloquear agora',vault_locked:'Cofre criptografado',ver:'v1.4 • MIT • 100% offline',ver2:'só BrasilAPI p/ bancos',title:'Meus cartões',sub:'{n} cartão(ões) • clique num cartão para ver detalhes',search_ph:'Buscar por titular, banco, apelido ou final...',new:'＋ Novo cartão',st_total:'Total de cartões',st_credit:'Crédito',st_debit:'Débito',st_banks:'Bancos diferentes',chip_all:'Todos',credit:'Crédito',debit:'Débito',e_title:'Cofre vazio — adicione seu primeiro cartão',e_desc:'Escolha o banco na lista oficial (BrasilAPI, grátis), a bandeira é detectada sozinha e tudo fica cifrado com AES-GCM.',n_title:'Nada encontrado',n_desc:'Ajuste a busca ou o filtro de bandeira.',form_new:'＋ Novo cartão',form_edit:'✎ Editar cartão',form_sub:'Número nunca sai do notebook — salvo só criptografado.',f_nick:'Apelido do cartão',f_nick_ph:'Ex: Nubank Roxinho, Inter Black...',f_bank:'Banco — busque na lista oficial (API gratuita, sem chave)',f_bank_ph:'⌕ Digite: nubank, itaú, bradesco, wise...',f_num:'Número do cartão',f_flag:'Bandeira:',f_auto:'— auto-detectar —',f_holder:'Titular (como impresso)',f_exp:'Validade',f_cvv:'CVV',f_cvv_h:'Oculto sempre',f_type:'Tipo',cancel:'Cancelar',save:'Salvar criptografado 🔒',loading:'Carregando bancos...',avail:'{n} bancos disponíveis • toque para escolher',results:'{n} resultado(s) para "{q}"',none:'Nenhum banco —',other:'usar Outro / Internacional',d_number:'Número',d_exp:'Validade',d_exp_s:'Val',d_cvv:'CVV',d_holder:'Titular',d_bank:'Banco',copy:'copiar',show:'mostrar',hide:'ocultar',note:'📋 Copiar limpa a área de transferência em {n}s. CVV fica oculto por padrão.',edit:'✎ Editar',del:'🗑 Excluir',details:'Detalhes',num_btn:'⎙ Número',s_title:'⚙ Configurações',s_sub:'Clean, local e sob seu controle.',s_lang:'Idioma',s_lang_d:'Language • Idioma da interface',s_theme:'Aparência',s_theme_d:'Claro, escuro ou sistema',dark:'Escuro',light:'Claro',system:'Sistema',s_lock:'Auto-bloqueio',s_lock_d:'Bloqueia o cofre após inatividade',never:'Nunca',s_clip:'Limpar área de transferência',s_clip_d:'Apaga número copiado após N segundos',s_mask:'Mascarar números',s_mask_d:'Mostra só os 4 últimos por padrão',s_bak:'Backup criptografado',s_bak_d:'Exporta .json cifrado (precisa da senha-mestra)',export:'⬇ Exportar',s_res:'Restaurar backup',s_res_d:'Importa arquivo exportado acima',import:'⬆ Importar',s_pw:'Trocar senha-mestra',s_pw_d:'Re-criptografa tudo com a nova senha',change:'Trocar',s_wipe:'Apagar tudo',s_wipe_d:'Remove cofre + cartões deste notebook',erase:'Apagar',net_on:'Bancos: BrasilAPI ({n} bancos, grátis sem chave) + mundo',net_off:'Bancos: lista local offline (sem internet — conecte p/ atualizar via BrasilAPI)',sec_br:'🇧🇷 BRASIL — BRASILAPI',sec_world:'🌍 MUNDO — TOP BANCOS',sec_gleif:'TEMPO REAL — GLEIF (GRÁTIS)',sec_note:'Cartões: só AES-GCM local. Nenhum dado sensível sai do device — as únicas chamadas de rede são as listas públicas de bancos (BrasilAPI + GLEIF mundial).',lock_new:'Cofre de cartões 100% local e open source.<br>Crie uma <b style="color:var(--text)">senha-mestra</b> — só ela descriptografa seus cartões (AES-GCM).',lock_back:'Bem-vindo de volta.<br>Digite sua <b style="color:var(--text)">senha-mestra</b> para descriptografar o cofre local.',pw_ph:'Senha-mestra (mín. 8 caracteres)',pw2_ph:'Confirmar senha-mestra',create:'Criar cofre →',unlock:'Desbloquear →',to_dark:'☾ Tema escuro',to_light:'☀ Tema claro',lock_foot:'🔒 PBKDF2 250.000 iterações + AES-GCM 256<br>Nada sai do seu notebook • <b>Sem conta • Sem nuvem • MIT</b>',t_opened:'Cofre aberto • {n} cartão(ões)',t_autolock:'Auto-bloqueio por inatividade 🔒',t_saved:'Cartão salvo criptografado 🔒',t_updated:'Cartão atualizado ✓',t_deleted:'Cartão excluído',t_needbank:'Escolha o banco na lista 🔍',t_numinc:'Número incompleto',t_luhn:'Número inválido (falha no Luhn) ⚠',t_expbad:'Validade inválida — use MM/AA',t_holder:'Informe o titular',t_copied:'Copiado — limpa em {n}s 🧹',t_copyfail:'Não foi possível copiar',t_empty:'Campo vazio',t_bakdone:'Backup exportado (ainda criptografado) ⬇',t_bakbad:'Backup inválido ou senha errada',t_pwok:'Senha trocada e cofre re-criptografado ✓',t_pwwrong:'Senha atual incorreta',t_short:'Muito curta',t_wiped:'Cofre apagado',t_settings:'Configurações salvas ✓',luhn_ok:'✓ número válido (Luhn)',luhn_bad:'⚠ dígitos incompletos/inválidos',exp_use:'Use MM/AA (ex: 09/28)',exp_ok:'✓ validade ok',exp_past:'⚠ cartão vencido',c_del:'Excluir este cartão do cofre?',c_replace:'Substituir o cofre atual pelo backup?',c_wipe:'APAGAR TUDO? Cartões + cofre serão removidos deste notebook.',p_bakpw:'Senha-mestra do BACKUP para validar:',p_cur:'Senha-mestra atual:',p_new:'Nova senha-mestra (mín. 8):',p_wipe:'Digite APAGAR para confirmar:',e_short:'Senha-mestra precisa de ao menos 8 caracteres.',e_mismatch:'As senhas não conferem.',e_wrong:'Senha incorreta ou cofre corrompido.',bank_fallback:'Seu banco',sec_auto:'AES-GCM 256 • PBKDF2<br>Auto-bloqueio em {n} min',sec_never:'AES-GCM 256 • PBKDF2<br>Auto-bloqueio desligado',show_num:'Mostrar números',hide_num:'Ocultar números',t_lang:'Idioma: Português ✓',login_new:'CRIAR COFRE',login_in:'ACESSO AO COFRE',t_wait:'Aguarde {s}s antes de tentar de novo 🔒',t_numlen:'Tamanho inválido para {brand} ⚠',t_cvvreq:'Informe o CVV (3 dígitos, 4 na Amex)',t_cvvlen:'CVV inválido — use {n} dígitos',cvv_ok:'✓ CVV ok',t_testpan:'⚠ parece número de teste — confira',t_expfar:'Validade muito distante (máx. 12 anos)'},
+en:{manage:'MANAGE',cards:'My cards',add:'Add',settings:'Settings',sec:'SECURITY',lock_now:'Lock now',vault_locked:'Encrypted vault',ver:'v1.4 • MIT • 100% offline',ver2:'only BrasilAPI for banks',title:'My cards',sub:'{n} card(s) • click a card for details',search_ph:'Search by holder, bank, nickname or last digits...',new:'＋ New card',st_total:'Total cards',st_credit:'Credit',st_debit:'Debit',st_banks:'Different banks',chip_all:'All',credit:'Credit',debit:'Debit',e_title:'Empty vault — add your first card',e_desc:'Pick the bank from the official list (BrasilAPI, free), the brand is auto-detected and everything is AES-GCM encrypted.',n_title:'Nothing found',n_desc:'Adjust the search or the brand filter.',form_new:'＋ New card',form_edit:'✎ Edit card',form_sub:'Number never leaves this notebook — stored encrypted only.',f_nick:'Card nickname',f_nick_ph:'Ex: Purple Nubank, Black Inter...',f_bank:'Bank — search the official list (free API, no key)',f_bank_ph:'⌕ Type: nubank, itaú, bradesco, wise...',f_num:'Card number',f_flag:'Brand:',f_auto:'— auto-detect —',f_holder:'Holder (as printed)',f_exp:'Expiry',f_cvv:'CVV',f_cvv_h:'Always hidden',f_type:'Type',cancel:'Cancel',save:'Save encrypted 🔒',loading:'Loading banks...',avail:'{n} banks available • tap to choose',results:'{n} result(s) for "{q}"',none:'No bank —',other:'use Other / International',d_number:'Number',d_exp:'Expiry',d_exp_s:'Exp',d_cvv:'CVV',d_holder:'Holder',d_bank:'Bank',copy:'copy',show:'show',hide:'hide',note:'📋 Copy clears the clipboard in {n}s. CVV stays hidden by default.',edit:'✎ Edit',del:'🗑 Delete',details:'Details',num_btn:'⎙ Number',s_title:'⚙ Settings',s_sub:'Clean, local and under your control.',s_lang:'Language',s_lang_d:'Idioma • interface language',s_theme:'Appearance',s_theme_d:'Light, dark or system',dark:'Dark',light:'Light',system:'System',s_lock:'Auto-lock',s_lock_d:'Locks the vault after inactivity',never:'Never',s_clip:'Clear clipboard',s_clip_d:'Erases copied number after N seconds',s_mask:'Mask numbers',s_mask_d:'Shows only the last 4 by default',s_bak:'Encrypted backup',s_bak_d:'Exports encrypted .json (needs master password)',export:'⬇ Export',s_res:'Restore backup',s_res_d:'Imports a file exported above',import:'⬆ Import',s_pw:'Change master password',s_pw_d:'Re-encrypts everything with the new password',change:'Change',s_wipe:'Erase everything',s_wipe_d:'Removes vault + cards from this notebook',erase:'Erase',net_on:'Banks: BrasilAPI ({n} banks, free no key) + world',net_off:'Banks: offline local list (no internet — connect to refresh via BrasilAPI)',sec_br:'🇧🇷 BRAZIL — BRASILAPI',sec_world:'🌍 WORLD — TOP BANKS',sec_gleif:'LIVE — GLEIF (FREE)',sec_note:'Cards: AES-GCM local only. No sensitive data leaves the device — the only network calls are the public bank lists (BrasilAPI + worldwide GLEIF).',lock_new:'100% local open source card vault.<br>Create a <b style="color:var(--text)">master password</b> — only it decrypts your cards (AES-GCM).',lock_back:'Welcome back.<br>Enter your <b style="color:var(--text)">master password</b> to decrypt the local vault.',pw_ph:'Master password (min. 8 chars)',pw2_ph:'Confirm master password',create:'Create vault →',unlock:'Unlock →',to_dark:'☾ Dark theme',to_light:'☀ Light theme',lock_foot:'🔒 PBKDF2 250,000 iterations + AES-GCM 256<br>Nothing leaves your notebook • <b>No account • No cloud • MIT</b>',t_opened:'Vault open • {n} card(s)',t_autolock:'Auto-locked for inactivity 🔒',t_saved:'Card saved encrypted 🔒',t_updated:'Card updated ✓',t_deleted:'Card deleted',t_needbank:'Choose the bank from the list 🔍',t_numinc:'Incomplete number',t_luhn:'Invalid number (Luhn failed) ⚠',t_expbad:'Invalid expiry — use MM/YY',t_holder:'Enter the holder',t_copied:'Copied — clears in {n}s 🧹',t_copyfail:'Could not copy',t_empty:'Empty field',t_bakdone:'Backup exported (still encrypted) ⬇',t_bakbad:'Invalid backup or wrong password',t_pwok:'Password changed, vault re-encrypted ✓',t_pwwrong:'Wrong current password',t_short:'Too short',t_wiped:'Vault erased',t_settings:'Settings saved ✓',luhn_ok:'✓ valid number (Luhn)',luhn_bad:'⚠ incomplete/invalid digits',exp_use:'Use MM/YY (ex: 09/28)',exp_ok:'✓ expiry ok',exp_past:'⚠ card expired',c_del:'Delete this card from the vault?',c_replace:'Replace the current vault with the backup?',c_wipe:'ERASE EVERYTHING? Cards + vault will be removed from this notebook.',p_bakpw:'BACKUP master password to validate:',p_cur:'Current master password:',p_new:'New master password (min. 8):',p_wipe:'Type ERASE to confirm:',e_short:'Master password needs at least 8 characters.',e_mismatch:'Passwords do not match.',e_wrong:'Wrong password or corrupted vault.',bank_fallback:'Your bank',sec_auto:'AES-GCM 256 • PBKDF2<br>Auto-lock in {n} min',sec_never:'AES-GCM 256 • PBKDF2<br>Auto-lock off',show_num:'Show numbers',hide_num:'Hide numbers',t_lang:'Language: English ✓',login_new:'CREATE VAULT',login_in:'VAULT LOGIN',t_wait:'Wait {s}s before retrying 🔒',t_numlen:'Invalid length for {brand} ⚠',t_cvvreq:'Enter the CVV (3 digits, 4 on Amex)',t_cvvlen:'Invalid CVV — use {n} digits',cvv_ok:'✓ CVV ok',t_testpan:'⚠ looks like a test number — double-check',t_expfar:'Expiry too far (max 12 years)'},
+es:{manage:'GESTIONAR',cards:'Mis tarjetas',add:'Añadir',settings:'Ajustes',sec:'SEGURIDAD',lock_now:'Bloquear ahora',vault_locked:'Bóveda cifrada',ver:'v1.4 • MIT • 100% sin conexión',ver2:'solo BrasilAPI para bancos',title:'Mis tarjetas',sub:'{n} tarjeta(s) • clic en una tarjeta para ver detalles',search_ph:'Buscar por titular, banco, apodo o final...',new:'＋ Nueva tarjeta',st_total:'Total de tarjetas',st_credit:'Crédito',st_debit:'Débito',st_banks:'Bancos distintos',chip_all:'Todas',credit:'Crédito',debit:'Débito',e_title:'Bóveda vacía — añade tu primera tarjeta',e_desc:'Elige el banco de la lista oficial (BrasilAPI, gratis), la marca se detecta sola y todo queda cifrado con AES-GCM.',n_title:'Sin resultados',n_desc:'Ajusta la búsqueda o el filtro de marca.',form_new:'＋ Nueva tarjeta',form_edit:'✎ Editar tarjeta',form_sub:'El número nunca sale del notebook — solo se guarda cifrado.',f_nick:'Apodo de la tarjeta',f_nick_ph:'Ej: Nubank Morado, Inter Black...',f_bank:'Banco — busca en la lista oficial (API gratis, sin clave)',f_bank_ph:'⌕ Escribe: nubank, itaú, bradesco, wise...',f_num:'Número de la tarjeta',f_flag:'Marca:',f_auto:'— autodetectar —',f_holder:'Titular (como impreso)',f_exp:'Vencimiento',f_cvv:'CVV',f_cvv_h:'Siempre oculto',f_type:'Tipo',cancel:'Cancelar',save:'Guardar cifrado 🔒',loading:'Cargando bancos...',avail:'{n} bancos disponibles • toca para elegir',results:'{n} resultado(s) para "{q}"',none:'Ningún banco —',other:'usar Otro / Internacional',d_number:'Número',d_exp:'Vencimiento',d_exp_s:'Ven',d_cvv:'CVV',d_holder:'Titular',d_bank:'Banco',copy:'copiar',show:'mostrar',hide:'ocultar',note:'📋 Copiar limpia el portapapeles en {n}s. El CVV queda oculto por defecto.',edit:'✎ Editar',del:'🗑 Eliminar',details:'Detalles',num_btn:'⎙ Número',s_title:'⚙ Ajustes',s_sub:'Limpio, local y bajo tu control.',s_lang:'Idioma',s_lang_d:'Language • idioma de la interfaz',s_theme:'Apariencia',s_theme_d:'Claro, oscuro o sistema',dark:'Oscuro',light:'Claro',system:'Sistema',s_lock:'Bloqueo auto',s_lock_d:'Bloquea la bóveda tras inactividad',never:'Nunca',s_clip:'Limpiar portapapeles',s_clip_d:'Borra el número copiado tras N segundos',s_mask:'Ocultar números',s_mask_d:'Muestra solo los 4 últimos por defecto',s_bak:'Copia cifrada',s_bak_d:'Exporta .json cifrado (necesita la contraseña maestra)',export:'⬇ Exportar',s_res:'Restaurar copia',s_res_d:'Importa un archivo exportado arriba',import:'⬆ Importar',s_pw:'Cambiar contraseña maestra',s_pw_d:'Vuelve a cifrar todo con la nueva contraseña',change:'Cambiar',s_wipe:'Borrar todo',s_wipe_d:'Elimina bóveda + tarjetas de este notebook',erase:'Borrar',net_on:'Bancos: BrasilAPI ({n} bancos, gratis sin clave) + mundo',net_off:'Bancos: lista local sin conexión (sin internet — conecta para actualizar vía BrasilAPI)',sec_br:'🇧🇷 BRASIL — BRASILAPI',sec_world:'🌍 MUNDO — TOP BANCOS',sec_gleif:'EN VIVO — GLEIF (GRATIS)',sec_note:'Tarjetas: solo AES-GCM local. Ningún dato sensible sale del dispositivo — las únicas llamadas de red son las listas públicas de bancos (BrasilAPI + GLEIF mundial).',lock_new:'Bóveda de tarjetas 100% local y open source.<br>Crea una <b style="color:var(--text)">contraseña maestra</b> — solo ella descifra tus tarjetas (AES-GCM).',lock_back:'Bienvenido de nuevo.<br>Escribe tu <b style="color:var(--text)">contraseña maestra</b> para descifrar la bóveda local.',pw_ph:'Contraseña maestra (mín. 8 caracteres)',pw2_ph:'Confirmar contraseña maestra',create:'Crear bóveda →',unlock:'Desbloquear →',to_dark:'☾ Tema oscuro',to_light:'☀ Tema claro',lock_foot:'🔒 PBKDF2 250.000 iteraciones + AES-GCM 256<br>Nada sale de tu notebook • <b>Sin cuenta • Sin nube • MIT</b>',t_opened:'Bóveda abierta • {n} tarjeta(s)',t_autolock:'Bloqueo automático por inactividad 🔒',t_saved:'Tarjeta guardada cifrada 🔒',t_updated:'Tarjeta actualizada ✓',t_deleted:'Tarjeta eliminada',t_needbank:'Elige el banco de la lista 🔍',t_numinc:'Número incompleto',t_luhn:'Número inválido (falla Luhn) ⚠',t_expbad:'Vencimiento inválido — usa MM/AA',t_holder:'Indica el titular',t_copied:'Copiado — se borra en {n}s 🧹',t_copyfail:'No se pudo copiar',t_empty:'Campo vacío',t_bakdone:'Copia exportada (aún cifrada) ⬇',t_bakbad:'Copia inválida o contraseña errada',t_pwok:'Contraseña cambiada y bóveda recifrada ✓',t_pwwrong:'Contraseña actual incorrecta',t_short:'Muy corta',t_wiped:'Bóveda borrada',t_settings:'Ajustes guardados ✓',luhn_ok:'✓ número válido (Luhn)',luhn_bad:'⚠ dígitos incompletos/inválidos',exp_use:'Usa MM/AA (ej: 09/28)',exp_ok:'✓ vencimiento ok',exp_past:'⚠ tarjeta vencida',c_del:'¿Eliminar esta tarjeta de la bóveda?',c_replace:'¿Reemplazar la bóveda actual con la copia?',c_wipe:'¿BORRAR TODO? Tarjetas + bóveda se eliminarán de este notebook.',p_bakpw:'Contraseña maestra de la COPIA para validar:',p_cur:'Contraseña maestra actual:',p_new:'Nueva contraseña maestra (mín. 8):',p_wipe:'Escribe BORRAR para confirmar:',e_short:'La contraseña maestra necesita al menos 8 caracteres.',e_mismatch:'Las contraseñas no coinciden.',e_wrong:'Contraseña incorrecta o bóveda dañada.',bank_fallback:'Tu banco',sec_auto:'AES-GCM 256 • PBKDF2<br>Bloqueo auto en {n} min',sec_never:'AES-GCM 256 • PBKDF2<br>Bloqueo auto off',show_num:'Mostrar números',hide_num:'Ocultar números',t_lang:'Idioma: Español ✓',login_new:'CREAR BÓVEDA',login_in:'ACCESO A LA BÓVEDA',t_wait:'Espera {s}s antes de reintentar 🔒',t_numlen:'Longitud inválida para {brand} ⚠',t_cvvreq:'Indica el CVV (3 dígitos, 4 en Amex)',t_cvvlen:'CVV inválido — usa {n} dígitos',cvv_ok:'✓ CVV ok',t_testpan:'⚠ parece número de prueba — revísalo',t_expfar:'Vencimiento muy lejano (máx. 12 años)'}};
+function t(k, v){ let s = (I18N[settings.lang] && I18N[settings.lang][k]) ?? I18N.pt[k] ?? k; if (v) for (const key of Object.keys(v)) s = String(s).replaceAll('{'+key+'}', v[key]); return s; }
+function typeName(v){ return v === 'credito' ? t('credit') : t('debit'); }
+function persistPrefs(){ settings.masked = masked; try { localStorage.setItem('cardvault.prefs', JSON.stringify(settings)); } catch {} }
+function setLang(l){
+  if (!LANGS[l]) return;
+  settings.lang = l; persistPrefs(); applyI18n(); render();
+  if (!VAULT_KEY) paintLock();
+  toast(t('t_lang'));
+}
+// Aplica o idioma em tudo que é estático + reconstrói selects + repinta.
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.title = 'Card Vault — ' + t('title');
+  $('s_lang').value = settings.lang;
+  $('s_theme').innerHTML = `<option value="dark">${t('dark')}</option><option value="light">${t('light')}</option><option value="system">${t('system')}</option>`;
+  $('s_theme').value = settings.theme || 'light';
+  $('s_lock').innerHTML = `<option value="1">1 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="0">${t('never')}</option>`;
+  $('s_lock').value = String(settings.lockMin ?? 3);
+  $('s_clip').innerHTML = `<option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60">60 s</option>`;
+  $('s_clip').value = String(settings.clipSec ?? 15);
+  $('clipNote').innerHTML = t('note', { n: settings.clipSec ?? 15 });
+  if ($('lockLangLabel')) $('lockLangLabel').textContent = settings.lang.toUpperCase();
+  if ($('segC')) { $('segC').textContent = t('credit'); $('segD').textContent = t('debit'); }
+  document.querySelectorAll('#langMenu button').forEach(b => b.classList.toggle('sel', b.dataset.lang === settings.lang));
+  $('langMenu').classList.remove('open');
+  applySettings();
+  paintBanks();
+}
+function cycleLang(){
+  const order = ['pt', 'en', 'es'];
+  setLang(order[(order.indexOf(settings.lang) + 1) % order.length]);
+}
+document.addEventListener('click', e => {
+  const m = $('langMenu');
+  if (m && m.classList.contains('open') && !e.target.closest('.lang-wrap') && !e.target.closest('.lang-menu')) m.classList.remove('open');
+});
+
+// ================= BANCOS (API GRÁTIS SEM CHAVE) =================
+const GLOBAL_BANKS = [
+  { code:'260', name:'Nubank', ispb:'18236120', color:'#820AD1', logo:'nu', bare:1, pat:'none', acc:'#B45CFF', art:'linear-gradient(135deg,#9B30E0 0%,#820AD1 55%,#5C068C 100%)' },
+  { code:'077', name:'Banco Inter', ispb:'00416968', color:'#FF7A00', logo:'inter', bare:1, pat:'rays', acc:'#FFC46B', art:'linear-gradient(135deg,#FF9E2C 0%,#FF7A00 55%,#B24E00 100%)' },
+  { code:'341', name:'Itaú Unibanco', ispb:'60701190', color:'#0033A0', logo:'itaú', bare:1, pat:'wave', acc:'#FF8A00', art:'linear-gradient(135deg,#0A3AA8 0%,#002E8A 55%,#001A54 100%)' },
+  { code:'237', name:'Bradesco', ispb:'60746948', color:'#CC0000', logo:'bradesco', bare:1, pat:'stripes', acc:'#FF6B6B', art:'linear-gradient(135deg,#E30613 0%,#B0050F 60%,#6E0208 100%)' },
+  { code:'033', name:'Santander', ispb:'90400888', color:'#EC0000', logo:'🔥 santander', bare:1, pat:'rays', acc:'#FF7A7A', art:'linear-gradient(135deg,#F52222 0%,#CE0000 55%,#850000 100%)' },
+  { code:'001', name:'Banco do Brasil', ispb:'00000000', color:'#003DA5', logo:'BB', bare:0, pat:'wave', acc:'#FFD200', art:'linear-gradient(135deg,#0E56D6 0%,#003DA5 55%,#001C52 100%)' },
+  { code:'104', name:'Caixa', ispb:'00360305', color:'#005CA9', logo:'CAIXA', bare:1, pat:'stripes', acc:'#7AC3FF', art:'linear-gradient(135deg,#0A78D1 0%,#005CA9 60%,#00305C 100%)' },
+  { code:'208', name:'BTG Pactual', ispb:'30306294', color:'#001E41', logo:'btg', bare:1, pat:'carbon', acc:'#5C7CFF', art:'linear-gradient(135deg,#0E2E5C 0%,#001A38 60%,#00060F 100%)' },
+  { code:'336', name:'C6 Bank', ispb:'31872495', color:'#1A1A1A', logo:'C6', outline:1, pat:'carbon', acc:'#9A9AA0', art:'linear-gradient(135deg,#3D3D42 0%,#17171A 60%,#000000 100%)' },
+  { code:'735', name:'Neon', ispb:'27219390', color:'#00D4C5', logo:'neon', bare:1, pat:'dots', acc:'#B6FFF6', art:'linear-gradient(135deg,#00E8D4 0%,#00A89B 60%,#00524B 100%)' },
+  { code:'077-PIX', name:'Wise', ispb:'-', color:'#00B9FF', logo:'wise', bare:1, pat:'dots', acc:'#D6F3FF', art:'linear-gradient(135deg,#33C4FF 0%,#0090C7 60%,#004E6E 100%)' },
+  { code:'000', name:'Revolut', ispb:'-', color:'#0B0B0B', logo:'R', outline:1, pat:'rays', acc:'#8E8E93', art:'linear-gradient(135deg,#333338 0%,#101013 60%,#000000 100%)' },
+  { code:'212', name:'Banco Original', ispb:'09274232', color:'#00A868', logo:'original', bare:1, pat:'wave', acc:'#8BFFC9', art:'linear-gradient(135deg,#00CE7E 0%,#00995C 60%,#004A2D 100%)' },
+  { code:'655', name:'Votorantim', ispb:'03017677', color:'#00C06E', logo:'V', bare:0, pat:'stripes', acc:'#A9F5CF', art:'linear-gradient(135deg,#00D47E 0%,#00995A 60%,#004A2A 100%)' },
+  { code:'077-N26', name:'N26', ispb:'-', color:'#48AC98', logo:'N26', bare:1, pat:'dots', acc:'#CFF5EC', art:'linear-gradient(135deg,#5CC4B0 0%,#2E9E8A 60%,#123F37 100%)' },
+  { code:'999', name:'Outro / Internacional', ispb:'-', color:'#6E7CF3', logo:'◈', bare:1, pat:'rays', acc:'#C9CFFF', art:'linear-gradient(135deg,#7B86FF 0%,#4A56E2 60%,#1E245E 100%)' },
+];
+// ============ TOP BANCOS DO MUNDO (offline, curadoria + GLEIF ao vivo) ============
+// Códigos BR vêm da BrasilAPI; mundo usa sigla + país (bandeira).
+const WORLD_BANKS = [
+  { code:'JPM', name:'JPMorgan Chase', country:'US', color:'#002D62', logo:'CHASE', bare:1, pat:'wave', acc:'#7AA7FF', art:'linear-gradient(135deg,#0A3D91 0%,#00245E 60%,#000F2E 100%)' },
+  { code:'BOFA', name:'Bank of America', country:'US', color:'#E31837', logo:'Bank of America', bare:1, pat:'stripes', acc:'#9BB8FF', art:'linear-gradient(135deg,#C81E3A 0%,#8E0F22 60%,#4A0511 100%)' },
+  { code:'WELLS', name:'Wells Fargo', country:'US', color:'#D71E28', logo:'WF', bare:1, pat:'rays', acc:'#FFD27A', art:'linear-gradient(135deg,#E0303A 0%,#A5121B 60%,#5E090E 100%)' },
+  { code:'CITI', name:'Citibank', country:'US', color:'#002D72', logo:'citi', bare:1, pat:'wave', acc:'#7AA7FF', art:'linear-gradient(135deg,#0A49B8 0%,#002D72 60%,#001641 100%)' },
+  { code:'CAP1', name:'Capital One', country:'US', color:'#004879', logo:'1', bare:1, pat:'rays', acc:'#FF6B6B', art:'linear-gradient(135deg,#00639E 0%,#003A5E 60%,#001A2B 100%)' },
+  { code:'USB', name:'U.S. Bank', country:'US', color:'#0C2340', logo:'US', bare:1, pat:'stripes', acc:'#FF5D5D', art:'linear-gradient(135deg,#14315C 0%,#0A1C36 60%,#030A16 100%)' },
+  { code:'HSBC', name:'HSBC', country:'GB', color:'#DB0011', logo:'HSBC', bare:1, pat:'none', acc:'#FF8A8A', art:'linear-gradient(135deg,#E8112D 0%,#A5000D 60%,#5E0007 100%)' },
+  { code:'BARCL', name:'Barclays', country:'GB', color:'#00AEEF', logo:'BARCLAYS', bare:1, pat:'wave', acc:'#B8E9FF', art:'linear-gradient(135deg,#0090C7 0%,#005B7E 60%,#002A3A 100%)' },
+  { code:'LLOYDS', name:'Lloyds Bank', country:'GB', color:'#024731', logo:'LLOYDS', bare:1, pat:'rays', acc:'#7AE0A8', art:'linear-gradient(135deg,#046A48 0%,#023A28 60%,#011A12 100%)' },
+  { code:'MONZO', name:'Monzo', country:'GB', color:'#FF4F40', logo:'M', bare:1, pat:'dots', acc:'#FFC4BC', art:'linear-gradient(135deg,#FF6A5C 0%,#D63A2D 60%,#7A1D15 100%)' },
+  { code:'BBVA', name:'BBVA', country:'ES', color:'#072146', logo:'BBVA', bare:1, pat:'rays', acc:'#6E9FFF', art:'linear-gradient(135deg,#0E3A75 0%,#071C3D 60%,#020A18 100%)' },
+  { code:'BNP', name:'BNP Paribas', country:'FR', color:'#00915A', logo:'BNP', bare:1, pat:'wave', acc:'#8BFFC9', art:'linear-gradient(135deg,#00B873 0%,#006E44 60%,#003722 100%)' },
+  { code:'SG', name:'Société Générale', country:'FR', color:'#E30613', logo:'SG', bare:1, pat:'stripes', acc:'#FF9AA0', art:'linear-gradient(135deg,#E8112D 0%,#9E040E 60%,#520207 100%)' },
+  { code:'DB', name:'Deutsche Bank', country:'DE', color:'#0018A8', logo:'db', bare:1, pat:'rays', acc:'#8B96FF', art:'linear-gradient(135deg,#0A2BD6 0%,#00137A 60%,#000941 100%)' },
+  { code:'CBK', name:'Commerzbank', country:'DE', color:'#FFCC33', logo:'C', bare:1, pat:'dots', acc:'#FFF3C4', art:'linear-gradient(135deg,#E8B400 0%,#9E7A00 60%,#4A3900 100%)' },
+  { code:'ING', name:'ING', country:'NL', color:'#FF6200', logo:'ING', bare:1, pat:'wave', acc:'#FFC49B', art:'linear-gradient(135deg,#FF7A1F 0%,#C24A00 60%,#5E2300 100%)' },
+  { code:'BUNQ', name:'bunq', country:'NL', color:'#1CE2B1', logo:'bunq', bare:1, pat:'dots', acc:'#D2FFF3', art:'linear-gradient(135deg,#25EDBB 0%,#0E9E7A 60%,#074A39 100%)' },
+  { code:'UCG', name:'UniCredit', country:'IT', color:'#E2001A', logo:'U', bare:1, pat:'rays', acc:'#FF9AA2', art:'linear-gradient(135deg,#E8112D 0%,#9E0013 60%,#4E000A 100%)' },
+  { code:'UBS', name:'UBS', country:'CH', color:'#EC0016', logo:'UBS', bare:1, pat:'stripes', acc:'#FF9AA2', art:'linear-gradient(135deg,#F01428 0%,#A50010 60%,#520008 100%)' },
+  { code:'TD', name:'TD Bank', country:'CA', color:'#00A651', logo:'TD', bare:1, pat:'wave', acc:'#9BFFC9', art:'linear-gradient(135deg,#00C460 0%,#007A3C 60%,#003A1D 100%)' },
+  { code:'RBC', name:'RBC Royal Bank', country:'CA', color:'#005DAA', logo:'RBC', bare:1, pat:'rays', acc:'#F5D67B', art:'linear-gradient(135deg,#0A76D6 0%,#00447E 60%,#00203A 100%)' },
+  { code:'BNS', name:'Scotiabank', country:'CA', color:'#EC0000', logo:'S', bare:1, pat:'wave', acc:'#FF9A9A', art:'linear-gradient(135deg,#F01414 0%,#A50000 60%,#520000 100%)' },
+  { code:'BMO', name:'BMO', country:'CA', color:'#E31837', logo:'BMO', bare:1, pat:'stripes', acc:'#9BB8FF', art:'linear-gradient(135deg,#C81E3A 0%,#8E0F22 60%,#4A0511 100%)' },
+  { code:'BANAMEX', name:'Citibanamex', country:'MX', color:'#002D72', logo:'bmx', bare:1, pat:'wave', acc:'#7AA7FF', art:'linear-gradient(135deg,#0A49B8 0%,#002D72 60%,#001641 100%)' },
+  { code:'MUFG', name:'MUFG Bank', country:'JP', color:'#E60012', logo:'MUFG', bare:1, pat:'rays', acc:'#FF9AA2', art:'linear-gradient(135deg,#F01428 0%,#A5000D 60%,#520006 100%)' },
+  { code:'SMBC', name:'SMBC', country:'JP', color:'#00683C', logo:'SMBC', bare:1, pat:'wave', acc:'#8BFFC9', art:'linear-gradient(135deg,#00854D 0%,#004E2D 60%,#002416 100%)' },
+  { code:'DBS', name:'DBS Bank', country:'SG', color:'#C80000', logo:'DBS', bare:1, pat:'stripes', acc:'#FF9A9A', art:'linear-gradient(135deg,#E01414 0%,#8E0000 60%,#470000 100%)' },
+  { code:'HDFC', name:'HDFC Bank', country:'IN', color:'#004481', logo:'HDFC', bare:1, pat:'wave', acc:'#8BC4FF', art:'linear-gradient(135deg,#005DAA 0%,#00335E 60%,#001729 100%)' },
+  { code:'ICICI', name:'ICICI Bank', country:'IN', color:'#B02A30', logo:'i', bare:1, pat:'rays', acc:'#FFB3B3', art:'linear-gradient(135deg,#C94046 0%,#7E1E23 60%,#3F0F12 100%)' },
+  { code:'ENBD', name:'Emirates NBD', country:'AE', color:'#0066B3', logo:'NBD', bare:1, pat:'wave', acc:'#9BD4FF', art:'linear-gradient(135deg,#0083E6 0%,#004E89 60%,#002642 100%)' },
+  { code:'STANBIC', name:'Standard Bank', country:'ZA', color:'#0033A1', logo:'SB', bare:1, pat:'rays', acc:'#8BA9FF', art:'linear-gradient(135deg,#0A49C9 0%,#00257A 60%,#00123D 100%)' },
+  { code:'CBA', name:'Commonwealth Bank', country:'AU', color:'#FFCC00', logo:'CBA', bare:1, pat:'dots', acc:'#FFF3C4', art:'linear-gradient(135deg,#D9A800 0%,#8E6E00 60%,#453500 100%)' },
+  { code:'ANZ', name:'ANZ', country:'AU', color:'#004165', logo:'ANZ', bare:1, pat:'wave', acc:'#8BC4FF', art:'linear-gradient(135deg,#005A8C 0%,#003145 60%,#001721 100%)' },
+  { code:'WESTPAC', name:'Westpac', country:'AU', color:'#DA1710', logo:'W', bare:1, pat:'rays', acc:'#FF9A9A', art:'linear-gradient(135deg,#E82822 0%,#9E100B 60%,#4E0805 100%)' },
+];
+// Bandeira do país a partir do código ISO (US → 🇺🇸)
+function flag(cc){
+  if (!cc || cc.length !== 2) return '🌍';
+  return String(cc).toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}
+// GLEIF — base global oficial de entidades (inclui bancos do mundo todo). Grátis, sem chave.
+async function searchGleif(q, signal){
+  const url = 'https://api.gleif.org/api/v1/lei-records?filter[entity.legalName]=' + encodeURIComponent(q) + '&page[size]=8';
+  const r = await fetch(url, { signal });
+  if (!r.ok) throw 0;
+  const j = await r.json();
+  const seen = new Set();
+  return (j.data || []).map(d => {
+    const e = (d.attributes && d.attributes.entity) || {};
+    const nm = (e.legalName && e.legalName.name) || d.id;
+    const key = nm.toLowerCase();
+    if (seen.has(key)) return null;
+    seen.add(key);
+    const cc = (e.headquartersAddress && e.headquartersAddress.country) || (e.legalAddress && e.legalAddress.country) || '';
+    return { code:'GLB', name: titleCase(nm), country: cc, color: hashColor(nm), logo: flag(cc), bare:1, pat:'dots', gleif: d.id };
+  }).filter(Boolean);
+}
+// Arte do cartão estilo banco real: gradiente + selo do banco. Fallback usa a cor.
+function bankArt(bank, color) {
+  if (bank?.art) return bank.art;
+  const c = color || bank?.color || '#3A4150';
+  return `linear-gradient(125deg, ${c} 0%, #0d1017 135%)`;
+}
+function bankMark(bank) {
+  const logo = bank?.logo || (bank?.name || '?').trim().charAt(0).toUpperCase();
+  const name = bank?.name || t('bank_fallback');
+  // Wordmark sozinho (igual cartão real) quando o logo já é o nome do banco.
+  if (bank?.bare) return `<span class="bank-logo solo">${escapeHtml(logo)}</span>`;
+  return `<span class="bank-logo"><i class="blogo${bank?.outline ? ' outline' : ''}">${escapeHtml(logo)}</i><span class="bname">${escapeHtml(name)}</span></span>`;
+}
+const BANK_COLORS = { '260':'#820AD1','077':'#FF7A00','341':'#0033A0','237':'#CC0000','033':'#EC0000','001':'#003DA5','104':'#005CA9','208':'#001E41','336':'#1A1A1A','735':'#00D4C5','212':'#00A868' };
+let BANKS = [...GLOBAL_BANKS];
+
+async function loadBanks() {
+  // 1) cache local (30 dias)
+  try {
+    const c = JSON.parse(localStorage.getItem('cardvault.banks') || 'null');
+    if (c && Date.now() - c.ts < 30*864e5 && c.list?.length) { BANKS = mergeBanks(c.list); paintBanks(); }
+  } catch {}
+  // 2) BrasilAPI — gratuita, sem chave
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/banks/v1', { cache:'force-cache' });
+    if (!r.ok) throw 0;
+    const list = await r.json();
+    const mapped = list.filter(b => b.code && b.name).map(b => ({
+      code: String(b.code).padStart(3,'0'), name: titleCase(b.name), ispb: b.ispb || '-',
+      color: BANK_COLORS[String(b.code).padStart(3,'0')] || hashColor(b.name)
+    }));
+    BANKS = mergeBanks(mapped);
+    localStorage.setItem('cardvault.banks', JSON.stringify({ ts: Date.now(), list: mapped.slice(0, 400) }));
+    $('bankSrc').textContent = t('net_on', { n: mapped.length });
+  } catch {
+    $('bankSrc').textContent = t('net_off');
+  }
+  paintBanks();
+}
+function mergeBanks(apiList) {
+  const base = [...GLOBAL_BANKS, ...WORLD_BANKS];
+  const seen = new Set(base.map(b => b.code));
+  const extra = apiList.filter(b => !seen.has(b.code));
+  return [...base, ...extra];
+}
+// Busca por código + nome (código GLB se repete entre resultados mundiais).
+function findBank(code, name){
+  return BANKS.find(b => b.code === code && (!name || b.name === name))
+      || BANKS.find(b => b.code === code)
+      || null;
+}
+function titleCase(s){ return String(s).toLowerCase().replace(/(?:^|\s|[/-])\S/g, c => c.toUpperCase()); }
+function hashColor(name){ let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0; return `hsl(${h%360} 55% 38%)`; }
+function paintBanks(){ renderBankList(''); $('bankStatus').textContent = t('avail', { n: BANKS.length }); }
+let bankReq = 0, gleifCache = [];
+function bankOptHTML(b, extra){
+  const tag = b.country ? `<span style="font-size:13px">${flag(b.country)}</span>` : '';
+  const id = extra || b.code;
+  return `
+    <div class="bank-opt ${formBank?.code===b.code && formBank?.name===b.name?'sel':''}" data-bcode="${escapeHtml(b.code)}" data-bname="${escapeHtml(b.name)}" onclick='pickBankEl(this)'>
+      <span class="bdot" style="background:${b.color}"></span>
+      <span class="bcode">${escapeHtml(b.code)}</span><span style="font-weight:600">${escapeHtml(b.name)}</span>${tag}
+    </div>`;
+}
+async function renderBankList(q) {
+  q = (q || '').toLowerCase().trim();
+  const my = ++bankReq;
+  const match = b => !q || b.name.toLowerCase().includes(q) || String(b.code).toLowerCase().includes(q) || (b.country && b.country.toLowerCase() === q);
+  const rank = b => (q && b.name.toLowerCase().startsWith(q) ? 0 : 1);
+  const br = BANKS.filter(b => !b.country && match(b)).sort((a, b2) => rank(a) - rank(b2));
+  const world = BANKS.filter(b => b.country && match(b) && b.code !== 'GLB').sort((a, b2) => rank(a) - rank(b2)).slice(0, 20);
+  let html = '';
+  if (br.length) html += `<div class="bank-sec">${t('sec_br')}</div>` + br.slice(0, 30).map(b => bankOptHTML(b)).join('');
+  if (q && world.length) html += `<div class="bank-sec">${t('sec_world')}</div>` + world.map(b => bankOptHTML(b)).join('');
+  if (!q) html += `<div class="bank-sec">${t('sec_world')}</div>` + BANKS.filter(b => b.country && b.code !== 'GLB').slice(0, 10).map(b => bankOptHTML(b)).join('');
+  if (!html) html = `<div style="padding:14px;color:var(--muted);font-size:12.5px">${t('none')} <a href="#" onclick="pickBank('999');return false" style="color:var(--accent)">${t('other')}</a></div>`;
+  // Busca mundial ao vivo (GLEIF, grátis sem chave) com 2+ letras
+  if (q && q.length >= 2) {
+    html += `<div class="bank-sec" id="gleifSec">🌍 ${t('sec_gleif')}…</div>`;
+    $('bankList').innerHTML = html;
+    $('bankStatus').textContent = t('results', { n: br.length + world.length, q });
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 7000);
+      const gl = await searchGleif(q, ctl.signal);
+      clearTimeout(timer);
+      if (my !== bankReq) return;
+      gleifCache = gl;
+      const sec = $('gleifSec');
+      if (sec && gl.length) sec.outerHTML = `<div class="bank-sec">🌍 ${t('sec_gleif')} (${gl.length})</div>` + gl.map((b, i) => bankOptHTML(b, 'GLEIF:' + i)).join('');
+      else if (sec) sec.textContent = `🌍 ${t('sec_gleif')} (0)`;
+    } catch { /* offline: mantém só lista local */ }
+    return;
+  }
+  $('bankList').innerHTML = html;
+  $('bankStatus').textContent = q ? t('results', { n: br.length + world.length, q }) : t('avail', { n: BANKS.length });
+}
+function pickBankEl(el){
+  const code = el.dataset.bcode, name = el.dataset.bname;
+  let b = null;
+  if (code === 'GLB') b = [...gleifCache, ...BANKS].find(x => x.code === 'GLB' && x.name === name);
+  else b = findBank(code, name);
+  formBank = b || BANKS[BANKS.length-1];
+  $('bankSearch').value = `${formBank.name} (${formBank.country ? flag(formBank.country) + ' ' + formBank.country : formBank.code})`;
+  renderBankList(''); livePreview();
+}
+function pickBank(code) {
+  formBank = findBank(code) || BANKS[BANKS.length-1];
+  $('bankSearch').value = `${formBank.name} (${formBank.code})`;
+  renderBankList(''); livePreview();
+}
+
+// ================= BANDEIRAS =================
+function detectBrand(d) {
+  d = d.replace(/\D/g,'');
+  if (/^(606282|3841)/.test(d)) return 'Hipercard';
+  if (/^60/.test(d) && d.length >= 3 && !/^60(11)/.test(d)) { if (/^606282/.test(d)) return 'Hipercard'; }
+  if (/^4/.test(d)) return 'Visa';
+  if (/^(5[1-5]|222[1-9]|22[3-9]\d|2[3-6]\d{2}|27[01]\d|2720)/.test(d)) return 'Mastercard';
+  if (/^3[47]/.test(d)) return 'Amex';
+  if (/^(4011|4312|4389|4576|504175|5067\d|509\d{2}|627780|636297|636368|6504[0-9]|6505|6506|6507|6550)/.test(d)) return 'Elo';
+  if (/^50/.test(d)) return 'Aura';
+  if (/^6(?:011|5)/.test(d)) return 'Discover';
+  if (/^35/.test(d)) return 'JCB';
+  if (/^3(?:0[0-5]|[68])/.test(d)) return 'Diners';
+  if (/^62/.test(d)) return 'UnionPay';
+  return d.length >= 4 ? 'Desconhecida' : '';
+}
+const BRAND_STYLE = {
+  'Visa':'<span class="visa">VISA</span>',
+  'Mastercard':'<span class="mc"><i></i><i></i></span>',
+  'Amex':'<span style="font-weight:800;background:#2E9EDE;color:#fff;padding:4px 9px;border-radius:6px;font-size:11px;letter-spacing:.08em">AMEX</span>',
+  'Elo':'<span style="display:flex;align-items:center"><span class="elo-chip"><i></i><i></i><i></i></span><span class="elo-txt" style="color:#fff">elo</span></span>',
+  'Hipercard':'<span style="font-style:italic;font-weight:800;color:#FF6B6B;font-size:16px">Hipercard</span>',
+  'Discover':'<span style="font-weight:800;font-size:13px;letter-spacing:.04em">DISCOVER <span style="color:#FF7A00">●</span></span>',
+  'JCB':'<span style="font-weight:800;font-size:14px;background:linear-gradient(90deg,#0A7A3D,#fff 45%,#D00000 75%);-webkit-background-clip:text;background-clip:text;color:transparent">JCB</span>',
+  'Diners':'<span style="font-weight:800;font-size:13px">Diners <span style="font-weight:400">Club</span></span>',
+  'Aura':'<span style="font-weight:800;font-size:15px;color:#FF8A00">aura</span>',
+  'UnionPay':'<span style="font-weight:800;font-size:12px">UnionPay <span style="color:#FF5D5D">●</span><span style="color:#3EA6FF">●</span></span>',
+};
+function luhnOk(num){ const d=num.replace(/\D/g,''); if(d.length<13) return false; let s=0,alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return s%10===0; }
+// Regras por bandeira: tamanho(s) do PAN + tamanho do CVV. Nível sênior: valida tudo.
+const BRAND_RULES = {
+  'Visa':{ len:[13,16,19], cvv:3 }, 'Mastercard':{ len:[16], cvv:3 }, 'Amex':{ len:[15], cvv:4 },
+  'Elo':{ len:[16], cvv:3 }, 'Hipercard':{ len:[16], cvv:3 }, 'Discover':{ len:[16,19], cvv:3 },
+  'Diners':{ len:[14], cvv:3 }, 'JCB':{ len:[16,17,18,19], cvv:3 }, 'Aura':{ len:[16], cvv:3 },
+  'UnionPay':{ len:[16,17,18,19], cvv:3 }, 'Desconhecida':{ len:[13,14,15,16,17,18,19], cvv:0 },
+};
+// PANs de teste conhecidos (documentação das bandeiras) — aviso, sem bloquear.
+const TEST_PANS = ['424242','411111','555555','378282','601111','353011','305693','222300','520082','675964'];
+function isTestPan(d){ return TEST_PANS.some(p => d.startsWith(p)); }
+// Validação completa do número: { ok, brand, reason } — reason é chave i18n ou ''.
+function validateNumber(digits){
+  const brand = detectBrand(digits);
+  if (!brand) return { ok:false, brand:'', reason:'t_numinc' };
+  const rule = BRAND_RULES[brand] || BRAND_RULES['Desconhecida'];
+  if (!rule.len.includes(digits.length)) return { ok:false, brand, reason:'t_numlen' };
+  if (!luhnOk(digits)) return { ok:false, brand, reason:'t_luhn' };
+  return { ok:true, brand, reason:'' };
+}
+function validateCvv(cvv, brand){
+  const rule = BRAND_RULES[brand] || BRAND_RULES['Desconhecida'];
+  if (!cvv) return { ok:false, reason:'t_cvvreq' };
+  if (!/^\d+$/.test(cvv)) return { ok:false, reason:'t_cvvlen' };
+  if (rule.cvv ? cvv.length !== rule.cvv : ![3,4].includes(cvv.length)) return { ok:false, reason:'t_cvvlen' };
+  return { ok:true, reason:'' };
+}
+function validateExpiry(exp){
+  const m = exp.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+  if (!m) return { ok:false, reason:'t_expbad' };
+  const now = new Date(), yy = now.getFullYear() % 100, mm = now.getMonth() + 1;
+  const ey = +m[2], em = +m[1];
+  if (ey < yy || (ey === yy && em < mm)) return { ok:false, reason:'exp_past' };
+  if (ey > yy + 12) return { ok:false, reason:'t_expfar' };
+  return { ok:true, reason:'' };
+}
+function fmtNum(d, brand){ d=d.replace(/\D/g,'').slice(0,19); if(brand==='Amex') return (d.slice(0,4)+' '+d.slice(4,10)+' '+d.slice(10,15)).trim(); return d.replace(/(\d{4})(?=\d)/g,'$1 '); }
+function maskNum(d){ const c=d.replace(/\D/g,''); if(masked) return '•••• •••• •••• ' + c.slice(-4); return fmtNum(d, detectBrand(d)); }
+
+// ================= CRIPTO =================
+const te = new TextEncoder(), td = new TextDecoder();
+const b64e = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKey(pw, salt){ const m = await crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveKey']); return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:250000, hash:'SHA-256' }, m, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']); }
+async function encryptVault(key, obj){ const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, te.encode(JSON.stringify(obj))); return { iv: b64e(iv), data: b64e(ct) }; }
+async function decryptVault(key, ivB64, dataB64){ const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv: b64d(ivB64) }, key, b64d(dataB64)); return JSON.parse(td.decode(pt)); }
+function pwScore(p){ let s=0; if(p.length>=8)s++; if(p.length>=12)s++; if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++; if(/\d/.test(p))s++; if(/[^A-Za-z0-9]/.test(p))s++; return s; }
+
+// ================= LOCK / VAULT =================
+const hasVault = () => !!localStorage.getItem('cardvault.v1');
+function paintLock(){
+  const isNew = !hasVault();
+  $('pw2').style.display = isNew ? 'block' : 'none';
+  $('lockBtn').textContent = isNew ? t('create') : t('unlock');
+  $('lockText').innerHTML = isNew ? t('lock_new') : t('lock_back');
+  if ($('lockTag')) $('lockTag').textContent = isNew ? t('login_new') : t('login_in');
+  $('nativeBadge').textContent = (window.vaultNative?.isApp) ? '● rodando como APP desktop (Electron)' : '● rodando local (navegador ou Electron)';
+}
+$('pw1').addEventListener('input', e => {
+  const s = pwScore(e.target.value), bar = $('strBar');
+  bar.style.width = (s/5*100)+'%';
+  bar.style.background = ['var(--red)','var(--red)','var(--yellow)','var(--yellow)','var(--green)','var(--green)'][s];
+});
+$('pw1').addEventListener('keydown', e => { if(e.key==='Enter') handleLock(); });
+$('pw2').addEventListener('keydown', e => { if(e.key==='Enter') handleLock(); });
+
+let failCount = 0, lockUntil = 0;
+async function handleLock(){
+  const p1 = $('pw1').value, p2 = $('pw2').value, err = $('lockError');
+  err.style.display = 'none';
+  const card = document.querySelector('.lock-card');
+  const fail = m => {
+    err.textContent = m; err.style.display = 'block';
+    failCount++;
+    lockUntil = Date.now() + Math.min(failCount * 1500, 10000);
+    if (card) { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
+  };
+  if (Date.now() < lockUntil) return fail(t('t_wait', { s: Math.ceil((lockUntil - Date.now()) / 1000) }));
+  if (!hasVault()) {
+    if (p1.length < 8) return fail(t('e_short'));
+    if (p1 !== p2) return fail(t('e_mismatch'));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    VAULT_KEY = await deriveKey(p1, salt);
+    SALT_B64 = b64e(salt);
+    const enc = await encryptVault(VAULT_KEY, []);
+    localStorage.setItem('cardvault.v1', JSON.stringify({ salt: SALT_B64, ...enc, v:1 }));
+    CARDS = [];
+  } else {
+    try {
+      const v = JSON.parse(localStorage.getItem('cardvault.v1'));
+      VAULT_KEY = await deriveKey(p1, b64d(v.salt));
+      CARDS = await decryptVault(VAULT_KEY, v.iv, v.data);
+      SALT_B64 = v.salt;
+    } catch { return fail(t('e_wrong')); }
+  }
+  $('pw1').value = $('pw2').value = '';
+  failCount = 0; lockUntil = 0;
+  unlock();
+}
+async function persist(){ const v = JSON.parse(localStorage.getItem('cardvault.v1')); const enc = await encryptVault(VAULT_KEY, CARDS); localStorage.setItem('cardvault.v1', JSON.stringify({ salt: SALT_B64, ...enc, v:1 })); }
+function unlock(){ $('lock').classList.add('hidden'); $('app').classList.add('unlocked'); applyI18n(); render(); resetIdle(); toast(t('t_opened', { n: CARDS.length })); }
+function lockNow(){ VAULT_KEY = null; CARDS = []; editingId = detailId = null; $('app').classList.remove('unlocked'); $('lock').classList.remove('hidden'); paintLock(); }
+function resetIdle(){
+  clearTimeout(idleTimer);
+  const m = +settings.lockMin || 0;
+  if (!m || !VAULT_KEY) return;
+  idleTimer = setTimeout(() => { lockNow(); toast(t('t_autolock')); }, m * 60e3);
+}
+['click','keydown','mousemove'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
+
+// ================= SETTINGS =================
+function currentTheme(){
+  let th = settings.theme || 'light';
+  if (th === 'system') th = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return th;
+}
+function applySettings(){
+  const th = currentTheme();
+  document.body.dataset.theme = th;
+  $('s_theme').value = settings.theme || 'light';
+  $('s_lock').value = String(settings.lockMin ?? 3);
+  $('s_clip').value = String(settings.clipSec ?? 15);
+  $('s_mask').classList.toggle('on', masked);
+  $('secInfo').innerHTML = (+settings.lockMin ? t('sec_auto', { n: settings.lockMin }) : t('sec_never'));
+  $('maskLabel').textContent = masked ? t('show_num') : t('hide_num');
+  // Botões sol/lua (topo + bloqueio)
+  if ($('themeBtn')) { $('themeBtn').textContent = th === 'light' ? '☾' : '☀'; $('themeBtn').title = th === 'light' ? t('to_dark') : t('to_light'); }
+  if ($('lockThemeBtn')) $('lockThemeBtn').textContent = th === 'light' ? t('to_dark') : t('to_light');
+}
+// Alterna branco ↔ preto com 1 clique, salva e vale até na tela de bloqueio.
+function cycleTheme(){
+  settings.theme = currentTheme() === 'light' ? 'dark' : 'light';
+  settings.masked = masked;
+  localStorage.setItem('cardvault.prefs', JSON.stringify(settings));
+  applySettings();
+}
+function saveSettings(){
+  settings.theme = $('s_theme').value; settings.lockMin = +$('s_lock').value; settings.clipSec = +$('s_clip').value;
+  masked = $('s_mask').classList.contains('on');
+  persistPrefs(); applyI18n(); render(); toast(t('t_settings'));
+}
+function toggleMaskAll(){ masked = !masked; settings.masked = masked; localStorage.setItem('cardvault.prefs', JSON.stringify(settings)); applySettings(); render(); }
+function setView(){}
+
+// ================= CARDS CRUD =================
+function setType(v){ formType = v; $('segC').classList.toggle('active', v==='credito'); $('segD').classList.toggle('active', v==='debito'); $('segC').textContent = t('credit'); $('segD').textContent = t('debit'); livePreview(); }
+function onNumInput(){
+  const el = $('f_num');
+  const digits = el.value.replace(/\D/g,'').slice(0,19);
+  const brand = detectBrand(digits);
+  el.value = fmtNum(digits, brand);
+  $('brandBadge').innerHTML = brand ? `● ${brand}` : t('f_auto');
+  const hint = $('luhnHint');
+  if (!digits.length) { hint.textContent = ''; hint.className = 'hint mut'; }
+  else if (!brand) { hint.textContent = t('t_numinc'); hint.className = 'hint mut'; }
+  else {
+    const v = validateNumber(digits);
+    if (v.ok) {
+      hint.textContent = isTestPan(digits) ? t('t_testpan') : t('luhn_ok');
+      hint.className = 'hint ' + (isTestPan(digits) ? 'mut' : 'ok');
+    } else {
+      hint.textContent = t(v.reason, { brand });
+      hint.className = 'hint ' + (v.reason === 't_numinc' ? 'mut' : 'err');
+    }
+  }
+  livePreview(); onCvvInput();
+}
+function onCvvInput(){
+  const el = $('f_cvv'); if (!el) return;
+  el.value = el.value.replace(/\D/g,'').slice(0,4);
+  const brand = detectBrand($('f_num').value.replace(/\D/g,'')) || 'Desconhecida';
+  const hint = $('cvvHint');
+  if (!el.value) { hint.textContent = t('f_cvv_h'); hint.className = 'hint mut'; return; }
+  const v = validateCvv(el.value, brand);
+  const rule = BRAND_RULES[brand] || {};
+  hint.textContent = v.ok ? t('cvv_ok') : t(v.reason, { n: rule.cvv || '3–4' });
+  hint.className = 'hint ' + (v.ok ? 'ok' : 'err');
+}
+function onExpInput(){
+  const el = $('f_exp');
+  let d = el.value.replace(/\D/g,'').slice(0,4);
+  el.value = d.length >= 3 ? d.slice(0,2)+'/'+d.slice(2) : d;
+  const hint = $('expHint');
+  if (!el.value) { hint.textContent=''; hint.className='hint mut'; return; }
+  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(el.value)) { hint.textContent=t('exp_use'); hint.className='hint err'; return; }
+  const v = validateExpiry(el.value);
+  hint.textContent = v.ok ? t('exp_ok') : t(v.reason);
+  hint.className = 'hint ' + (v.ok ? 'ok' : 'err');
+}
+function livePreview(){
+  const digits = $('f_num').value.replace(/\D/g,'') || '0000000000000000';
+  const brand = detectBrand(digits) || 'Visa';
+  const bank = formBank || { name:'Seu banco', code:'•••', color:'#3A4150' };
+  const holder = ($('f_holder').value || 'SEU NOME').toUpperCase();
+  const exp = $('f_exp').value || 'MM/AA';
+  $('livePreview').style.background = bankArt(bank);
+  $('livePreview').innerHTML = cardFace(bank, { holder, num: maskNum(digits), exp, type: formType, brand });
+}
+function openForm(edit){
+  editingId = edit?.id || null;
+  setType(edit?.type || 'credito');
+  $('formTitle').textContent = editingId ? t('form_edit') : t('form_new');
+  $('f_nick').value = edit?.nickname || '';
+  $('f_holder').value = edit?.holder || '';
+  $('f_num').value = edit ? fmtNum(edit.number, edit.brand) : '';
+  $('f_exp').value = edit?.expiry || '';
+  $('f_cvv').value = edit?.cvv || '';
+  formType = edit?.type || 'credito'; setType(formType);
+  formBank = edit ? (findBank(edit.bankCode, edit.bankName) || { code: edit.bankCode, name: edit.bankName, color: edit.color, country: edit.bankCountry }) : null;
+  $('bankSearch').value = edit ? `${edit.bankName} (${edit.bankCountry ? flag(edit.bankCountry) + ' ' + edit.bankCountry : edit.bankCode})` : '';
+  $('brandBadge').textContent = edit?.brand ? `● ${edit.brand}` : t('f_auto');
+  $('luhnHint').textContent = ''; $('expHint').textContent = ''; $('cvvHint').textContent = t('f_cvv_h'); $('cvvHint').className = 'hint mut';
+  $('formModal').classList.add('open'); renderBankList(''); livePreview();
+  setTimeout(() => $('f_nick').focus(), 60);
+}
+function closeForm(){ $('formModal').classList.remove('open'); }
+async function saveCard(){
+  const digits = $('f_num').value.replace(/\D/g,'');
+  const holder = $('f_holder').value.trim();
+  const exp = $('f_exp').value.trim();
+  if (!formBank) return toast(t('t_needbank'));
+  const cvvRaw = $('f_cvv').value.replace(/\D/g,'');
+  const nv = validateNumber(digits);
+  if (!nv.ok) return toast(t(nv.reason, { brand: nv.brand }));
+  const ev = validateExpiry(exp);
+  if (!ev.ok) return toast(t(ev.reason));
+  const cv = validateCvv(cvvRaw, nv.brand);
+  if (!cv.ok) {
+    const rule = BRAND_RULES[nv.brand] || {};
+    return toast(t(cv.reason, { n: rule.cvv || '3–4' }));
+  }
+  if (!holder) return toast(t('t_holder'));
+  const brand = nv.brand;
+  const obj = {
+    id: editingId || 'c' + Date.now().toString(36),
+    nickname: $('f_nick').value.trim() || `${formBank.name} •• ${digits.slice(-4)}`,
+    holder: holder.toUpperCase(), number: digits, expiry: exp,
+    cvv: $('f_cvv').value.replace(/\D/g,'').slice(0,4),
+    bankCode: formBank.code, bankName: formBank.name, color: formBank.color, bankCountry: formBank.country || '',
+    brand: brand || 'Desconhecida', type: formType, updatedAt: Date.now(),
+  };
+  if (editingId) CARDS = CARDS.map(c => c.id === editingId ? obj : c);
+  else { obj.createdAt = Date.now(); CARDS.unshift(obj); }
+  await persist(); closeForm(); render();
+  toast(editingId ? t('t_updated') : t('t_saved'));
+}
+function editFromDetail(){ const c = CARDS.find(x => x.id === detailId); closeDetail(); if (c) openForm(c); }
+async function delCurrent(){
+  if (!confirm(t('c_del'))) return;
+  CARDS = CARDS.filter(c => c.id !== detailId);
+  await persist(); closeDetail(); render(); toast(t('t_deleted'));
+}
+
+// ================= RENDER =================
+function escapeHtml(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function grad(color){ return `linear-gradient(125deg, ${color}, #0d1017 135%)`; }
+function bankOf(c){ return findBank(c.bankCode, c.bankName) || { code: c.bankCode, name: c.bankName, color: c.color, country: c.bankCountry }; }
+// Face do cartão fiel ao banco real: padrão do banco, logo, chip EMV, contactless,
+// número em relevo, titular, validade, bandeira + holograma.
+function cardFace(bank, o){
+  const pat = bank?.pat && bank.pat !== 'none' ? `<div class="card-pat pat-${bank.pat}" style="--pacc:${bank.acc || 'rgba(255,255,255,.3)'}"></div>` : '';
+  return `
+    ${pat}
+    <div class="card-top">${bankMark(bank)}<span class="type-badge">${typeName(o.type).toUpperCase()}</span></div>
+    <div class="card-mid"><div class="card-chip"><i></i></div><span class="card-contactless">)))</span></div>
+    <div class="card-num emboss">${escapeHtml(o.num)}</div>
+    <div class="card-bottom">
+      <div class="card-holder">${t('d_holder').toUpperCase()}<b>${escapeHtml(o.holder)}</b></div>
+      <div class="card-exp">${t('d_exp_s').toUpperCase()}<b>${escapeHtml(o.exp)}</b></div>
+      <div class="brand-mark-card">${BRAND_STYLE[o.brand] || escapeHtml(o.brand)}</div>
+    </div><div class="card-holo"></div>`;
+}
+function render(){
+  if (!VAULT_KEY) return;
+  const q = ($('q').value || '').toLowerCase();
+  const brands = [...new Set(CARDS.map(c => c.brand))].sort();
+  $('brandChips').innerHTML =
+    `<span class="chip ${brandFilter==='all'?'active':''}" onclick="brandFilter='all';render()">${t('chip_all')}</span>` +
+    `<span class="chip ${brandFilter==='credito'?'active':''}" onclick="brandFilter='credito';render()">${t('credit')}</span>` +
+    `<span class="chip ${brandFilter==='debito'?'active':''}" onclick="brandFilter='debito';render()">${t('debit')}</span>` +
+    brands.map(b => `<span class="chip brand-chip ${brandFilter===b?'active':''}" onclick="brandFilter='${b}';render()">${b}</span>`).join('');
+  let list = CARDS.filter(c =>
+    (brandFilter === 'all' || c.brand === brandFilter || c.type === brandFilter) &&
+    (!q || (c.holder + c.bankName + c.nickname + c.number + c.brand).toLowerCase().includes(q))
+  );
+  $('stTotal').textContent = CARDS.length;
+  $('stCred').textContent = CARDS.filter(c => c.type === 'credito').length;
+  $('stDeb').textContent = CARDS.filter(c => c.type === 'debito').length;
+  $('stBanks').textContent = new Set(CARDS.map(c => c.bankCode)).size;
+  $('navCount').textContent = CARDS.length;
+  $('viewSub').textContent = t('sub', { n: list.length });
+  $('grid').innerHTML = list.length ? list.map((c, i) => `
+    <div class="card-wrap card-enter" style="animation-delay:${Math.min(i, 7) * 45}ms"><div class="card3d" onclick="openDetail('${c.id}')" onmousemove="tilt(event,this)" onmouseleave="untilt(this)">
+      <div class="card-inner" style="background:${bankArt(bankOf(c))}">
+        ${cardFace(bankOf(c), { holder: c.holder, num: maskNum(c.number), exp: c.expiry, type: c.type, brand: c.brand })}
+      </div></div>
+      <div class="card-nick"><span>${escapeHtml(c.nickname)}</span><small>•• ${c.number.slice(-4)}</small></div>
+      <div class="card-actions" style="margin-top:8px">
+        <button class="mini" onclick="event.stopPropagation();openDetail('${c.id}')">👁 ${t('details')}</button>
+        <button class="mini" onclick="event.stopPropagation();copyText('${c.id}','number')">${t('num_btn')}</button>
+        <button class="mini" onclick="event.stopPropagation();openForm(CARDS.find(x=>x.id==='${c.id}'))">${t('edit')}</button>
+      </div>
+    </div>`).join('')
+  : `<div class="empty"><div class="big">💳</div><h3>${CARDS.length ? t('n_title') : t('e_title')}</h3><p>${CARDS.length ? t('n_desc') : t('e_desc')}</p><button class="btn btn-primary" style="width:auto;padding:12px 22px" onclick="openForm()">${t('new')}</button></div>`;
+}
+function tilt(e, el){ const r = el.getBoundingClientRect(); const x = (e.clientX - r.left)/r.width - .5, y = (e.clientY - r.top)/r.height - .5; el.querySelector('.card-inner').style.transform = `rotateY(${x*10}deg) rotateX(${-y*10}deg)`; }
+function untilt(el){ el.querySelector('.card-inner').style.transform = ''; }
+
+// ================= DETAIL + COPY =================
+function openDetail(id){
+  const c = CARDS.find(x => x.id === id); if (!c) return;
+  detailId = id;
+  $('d_nick').textContent = c.nickname;
+  $('d_sub').textContent = `${c.bankCountry ? flag(c.bankCountry) + ' ' : ''}${c.bankName} (${c.bankCode}) • ${c.brand} • ${typeName(c.type)}`;
+  $('detailPreview').style.background = bankArt(bankOf(c));
+  $('detailPreview').innerHTML = cardFace(bankOf(c), { holder: c.holder, num: maskNum(c.number), exp: c.expiry, type: c.type, brand: c.brand });
+  const row = (label, val, key) => `<div class="detail-line"><span>${label}</span><b><span id="dv_${key}">${val}</span> <button class="copy-btn" onclick="copyText('${c.id}','${key}')">${t('copy')}</button></b></div>`;
+  $('detailGrid').innerHTML =
+    `<div class="detail-line"><span>${t('d_number')}</span><b><span id="dv_number">${maskNum(c.number)}</span> <button class="copy-btn" onclick="copyText('${c.id}','number')">${t('copy')}</button> <button class="copy-btn" id="numToggleBtn" onclick="toggleNum('${c.id}')">${t('show')}</button></b></div>` +
+    row(t('d_exp'), escapeHtml(c.expiry), 'expiry') +
+    `<div class="detail-line"><span>${t('d_cvv')}</span><b><span id="dv_cvv">•••</span> <button class="copy-btn" onclick="copyText('${c.id}','cvv')">${t('copy')}</button> <button class="copy-btn" id="cvvToggleBtn" onclick="toggleCvv('${c.id}')">${t('show')}</button></b></div>` +
+    row(t('d_holder'), escapeHtml(c.holder), 'holder') +
+    row(t('d_bank'), `${escapeHtml(c.bankName)} (${c.bankCode})`, 'bank');
+  $('detailModal').classList.add('open');
+}
+function closeDetail(){ $('detailModal').classList.remove('open'); }
+function toggleCvv(id){
+  const c = CARDS.find(x => x.id === id);
+  const el = $('dv_cvv');
+  const shown = el.textContent !== '•••';
+  el.textContent = shown ? '•••' : (c.cvv || '—');
+  $('cvvToggleBtn').textContent = shown ? t('show') : t('hide');
+  if (!shown) setTimeout(() => { el.textContent = '•••'; const b = $('cvvToggleBtn'); if (b) b.textContent = t('show'); }, 8000);
+}
+// Sênior: revelar número completo por 10s (re-mascara sozinho).
+function toggleNum(id){
+  const c = CARDS.find(x => x.id === id); if (!c) return;
+  const el = $('dv_number'), prev = $('d_num'), btn = $('numToggleBtn');
+  const shown = el && el.dataset.full === '1';
+  if (shown) {
+    el.dataset.full = ''; el.textContent = maskNum(c.number);
+    if (prev) prev.textContent = maskNum(c.number);
+    if (btn) btn.textContent = t('show');
+  } else {
+    el.dataset.full = '1'; el.textContent = fmtNum(c.number, c.brand);
+    if (prev) prev.textContent = fmtNum(c.number, c.brand);
+    if (btn) btn.textContent = t('hide');
+    setTimeout(() => { const e2 = $('dv_number'); if (e2 && e2.dataset.full === '1') toggleNum(id); }, 10000);
+  }
+}
+async function copyText(id, field){
+  const c = CARDS.find(x => x.id === id); if (!c) return;
+  const val = field === 'number' ? c.number : field === 'expiry' ? c.expiry : field === 'cvv' ? c.cvv : c.holder;
+  if (!val) return toast(t('t_empty'));
+  try { await navigator.clipboard.writeText(val); } catch { toast(t('t_copyfail')); return; }
+  const sec = settings.clipSec ?? 15;
+  toast(t('t_copied', { n: sec }));
+  clearTimeout(clipTimer);
+  clipTimer = setTimeout(async () => {
+    try { await navigator.clipboard.writeText(''); } catch {}
+    if (window.vaultNative?.clearClipboard) try { await window.vaultNative.clearClipboard(); } catch {}
+  }, sec * 1000);
+}
+
+// ================= BACKUP / SENHA / WIPE =================
+function dl(name, text){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type:'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+function exportBackup(){ dl(`cardvault-backup-${new Date().toISOString().slice(0,10)}.json`, localStorage.getItem('cardvault.v1')); toast(t('t_bakdone')); }
+async function importBackup(input){
+  const f = input.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (!j.salt || !j.iv || !j.data) throw 0;
+    const pw = prompt(t('p_bakpw'));
+    if (!pw) return;
+    const key = await deriveKey(pw, b64d(j.salt));
+    await decryptVault(key, j.iv, j.data); // valida
+    if (!confirm(t('c_replace'))) return;
+    localStorage.setItem('cardvault.v1', JSON.stringify(j));
+    lockNow(); toast(t('t_bakdone'));
+  } catch { toast(t('t_bakbad')); }
+  input.value = '';
+}
+async function changePassword(){
+  const cur = prompt(t('p_cur')); if (!cur) return;
+  try { const v = JSON.parse(localStorage.getItem('cardvault.v1')); await decryptVault(await deriveKey(cur, b64d(v.salt)), v.iv, v.data); }
+  catch { return toast(t('t_pwwrong')); }
+  const nw = prompt(t('p_new')); if (!nw || nw.length < 8) return toast(t('t_short'));
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  VAULT_KEY = await deriveKey(nw, salt); SALT_B64 = b64e(salt);
+  await persist(); toast(t('t_pwok'));
+}
+function wipeWord(){ return ({ pt:'APAGAR', en:'ERASE', es:'BORRAR' })[settings.lang] || 'APAGAR'; }
+async function wipeAll(){
+  if (!confirm(t('c_wipe'))) return;
+  if (prompt(t('p_wipe')) !== wipeWord()) return;
+  localStorage.removeItem('cardvault.v1'); lockNow(); toast(t('t_wiped'));
+}
+
+// ================= SETTINGS MODAL =================
+function openSettings(){ $('setModal').classList.add('open'); }
+function closeSettings(){ $('setModal').classList.remove('open'); }
+
+// ================= UTILS =================
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600); }
+document.addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+  if (e.key === 'Escape') { closeForm(); closeDetail(); closeSettings(); const lm = $('langMenu'); if (lm) lm.classList.remove('open'); }
+  if ((e.key === '/' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) && !typing && VAULT_KEY) { e.preventDefault(); $('q').focus(); }
+});
+window.addEventListener('blur', () => { /* opcional: re-mascarar ao perder foco */ });
+
+// ================= BOOT =================
+applyI18n(); paintLock(); loadBanks();
+// PWA (celular/web): instala e funciona offline. No Electron/app é ignorado.
+try {
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.vaultNative) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+} catch {}
+</script>
+</body>
+</html>

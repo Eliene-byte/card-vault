@@ -1,0 +1,7 @@
+{
+  "appId": "com.cardvault.app",
+  "appName": "Card Vault",
+  "webDir": "dist",
+  "backgroundColor": "#F7F7F5",
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA 14 • Instalador Ultra Rápido v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080A0F;--bg2:#11131A;--bg3:#1A1D27;--bg4:#242836;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--text:#F0F2F5;--muted:#8B8FA3;--accent:#00D084;--accent2:#00B870;--blue:#0A84FF;--yellow:#FFD60A;--red:#FF3B30}
+body{background:var(--bg);color:var(--text);font-family:'Geist',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(800px 400px at 50% -10%, rgba(0,208,132,.15), transparent 60%), radial-gradient(600px 300px at 80% 100%, rgba(10,132,255,.08), transparent 60%), var(--bg)}
+.card{width:min(640px,100%);background:var(--bg2);border:1px solid var(--line2);border-radius:24px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04) inset}
+.header{padding:28px 28px 20px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(0,208,132,.12), rgba(10,132,255,.08));pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,208,132,.12);border:1px solid rgba(0,208,132,.3);padding:6px 12px;border-radius:999px;font-size:11px;letter-spacing:.08em;font-weight:600;color:var(--accent);position:relative}
+.dot{width:7px;height:7px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.header h1{font-size:32px;font-weight:700;letter-spacing:-.03em;margin-top:14px;position:relative}
+.header h1 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+.header p{color:var(--muted);font-size:13px;margin-top:8px;line-height:1.5;position:relative}
+.header p b{color:var(--text)}
+.stats{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;position:relative}
+.stat{padding:6px 10px;background:var(--bg3);border:1px solid var(--line);border-radius:999px;font-size:11px;display:flex;align-items:center;gap:6px}
+.stat b{font-family:'Geist Mono',monospace;color:var(--text)}
+.body{padding:20px 24px 24px}
+.field{margin-bottom:14px}
+.field label{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.field label span{font-weight:400;letter-spacing:0;color:var(--muted)}
+.input-wrap{position:relative;display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:14px;transition:.2s;overflow:hidden}
+.input-wrap:focus-within{border-color:rgba(0,208,132,.4);box-shadow:0 0 0 3px rgba(0,208,132,.1)}
+.input-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;padding:12px 14px;font-family:'Geist Mono',monospace}
+.input-wrap input::placeholder{color:#555}
+.input-icon{padding:0 12px;color:var(--muted);font-size:14px;border-right:1px solid var(--line);height:100%;display:grid;place-items:center;background:var(--bg3)}
+.advanced{margin-top:10px;background:var(--bg3);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.adv-head{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.adv-head span{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.adv-head i{font-style:normal;transition:.2s;color:var(--muted)}
+.advanced.open .adv-head i{transform:rotate(180deg)}
+.adv-body{display:none;padding:0 14px 14px;gap:10px}
+.advanced.open .adv-body{display:flex;flex-direction:column}
+.adv-row{display:flex;gap:10px}
+.adv-row .field{flex:1;margin:0}
+.threads{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.thr{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-size:11px;cursor:pointer;transition:.15s;font-family:'Geist Mono',monospace}
+.thr.active{background:var(--accent);color:#00140A;border-color:var(--accent);font-weight:700}
+.thr:hover:not(.active){border-color:var(--line2)}
+.progress-wrap{margin-top:18px;display:none}
+.progress-wrap.show{display:block}
+.p-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.p-head b{font-size:13px;font-weight:600}
+.p-head span{font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace}
+.bar{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden;position:relative}
+.bar-fill{height:100%;width:0%;background:linear-gradient(90deg, var(--accent), #00E5A0);border-radius:999px;transition:width .3s;position:relative;overflow:hidden}
+.bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);animation:shimmer 1.2s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.p-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.p-stat{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.p-stat b{display:block;font-family:'Geist Mono',monospace;font-size:16px;color:var(--accent)}
+.p-stat span{font-size:10px;letter-spacing:.08em;color:var(--muted)}
+.log{margin-top:12px;background:#05070A;border:1px solid var(--line);border-radius:12px;padding:10px 12px;height:110px;overflow:auto;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.6;color:#9AACB8}
+.log b{color:var(--accent)}
+.log .err{color:var(--red)}
+.log .warn{color:var(--yellow)}
+.btn{width:100%;padding:14px;border-radius:14px;border:none;font-weight:700;font-size:14px;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s;position:relative;overflow:hidden}
+.btn-primary{background:var(--accent);color:#00140A;box-shadow:0 8px 24px rgba(0,208,132,.3)}
+.btn-primary:hover{background:#00E5A0;transform:translateY(-1px);box-shadow:0 12px 32px rgba(0,208,132,.4)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--line2)}
+.btn-secondary:hover{background:var(--bg4)}
+.btn-row{display:flex;gap:10px;margin-top:10px}
+.btn-row .btn{flex:1}
+.hint{margin-top:12px;padding:10px 12px;background:rgba(10,132,255,.08);border:1px solid rgba(10,132,255,.2);border-radius:12px;font-size:11px;line-height:1.5;color:var(--muted)}
+.hint b{color:var(--blue)}
+.pulse-btn{animation:btnPulse 2s infinite}
+@keyframes btnPulse{0%,100%{box-shadow:0 8px 24px rgba(0,208,132,.3)}50%{box-shadow:0 8px 32px rgba(0,208,132,.5)}}
+.ultra-badge{position:absolute;top:12px;right:12px;background:var(--red);color:white;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;transform:rotate(8deg);box-shadow:0 4px 12px rgba(255,59,48,.4)}
+@media(max-width:560px){.p-stats{grid-template-columns:1fr 1fr 1fr}.header h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="card">
+  <div class="header">
+    <div class="ultra-badge">16× ULTRA</div>
+    <div class="badge"><span class="dot"></span> DOWNLOAD 10× MAIS RÁPIDO • 16 CONEXÕES</div>
+    <h1>FIFA <em>14</em> Ultra</h1>
+    <p>Instalador que satura sua internet.<br><b>16 threads paralelas</b> • <b>HTTP/2 + Range</b> • <b>aria2c + PowerShell</b> • Resume automático</p>
+    <div class="stats">
+      <div class="stat"><span style="width:8px;height:8px;background:var(--accent);border-radius:50%"></span> <b>~8 GB</b> • Jogo completo</div>
+      <div class="stat">⚡ <b id="speedHint">~2 min</b> em 500 Mb/s</div>
+      <div class="stat">🧩 <b>Auto-extract</b> + Setup</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="field">
+      <label>LINK HX-GET OU URL DIRETA <span>cole o hx-get COM /download?t=</span></label>
+      <div class="input-wrap">
+        <div class="input-icon">hx</div>
+        <input id="hxInput" value="/9eqbv6yp6136/download?t=MTc4ODM2NjM1MTMyOQ.AjiljC4m2FIoYQFzETDLeIGL18IRNuW2Kdaf9QJzRyo" placeholder="/9eqbv6yp6136/download?t=... (NAO https://bzzhr.to/9eqbv6yp6136)" spellcheck="false">
+      </div>
+      <div id="hxWarn" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.3);border-radius:10px;font-size:11px;line-height:1.4;color:#FF9B94"></div>
+    </div>
+
+    <div class="field">
+      <label>HOST BASE <span>onde está hospedado (auto)</span></label>
+      <div class="input-wrap">
+        <div class="input-icon">🌐</div>
+        <input id="baseInput" value="https://bzzhr.to" placeholder="https://bzzhr.to">
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <span class="thr" onclick="setBase('https://bzzhr.to')">bzzhr.to ★</span>
+        <span class="thr" onclick="setBase('https://gofile.io')">gofile.io</span>
+        <span class="thr" onclick="setBase('https://store9.gofile.io')">store9</span>
+        <span class="thr" onclick="setBase('')">Auto-detectar</span>
+      </div>
+    </div>
+
+    <div class="advanced" id="adv">
+      <div class="adv-head" onclick="this.parentElement.classList.toggle('open')">
+        <span>⚙️ Opções avançadas (ultra tuning)</span>
+        <i>⌄</i>
+      </div>
+      <div class="adv-body">
+        <div class="adv-row">
+          <div class="field">
+            <label>PASTA DESTINO</label>
+            <div class="input-wrap"><div class="input-icon">📁</div><input id="outDir" value="%USERPROFILE%\Downloads\FIFA14-Ultra"></div>
+          </div>
+          <div class="field">
+            <label>NOME ARQUIVO</label>
+            <div class="input-wrap"><div class="input-icon">📦</div><input id="fileName" value="FIFA14-Ultra.iso"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>THREADS (CONEXÕES PARALELAS)</label>
+          <div class="threads" id="threads">
+            <div class="thr" data-t="4">4x</div>
+            <div class="thr" data-t="8">8x</div>
+            <div class="thr active" data-t="16">16x ⚡ Recomendado</div>
+            <div class="thr" data-t="32">32x 🚀 Fibra 1Gb+</div>
+            <div class="thr" data-t="64">64x 🔥 EXTREME</div>
+          </div>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;cursor:pointer"><input type="checkbox" id="useAria2" checked> Usar aria2c se disponível (mais rápido, recomendado)</label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:12px;cursor:pointer"><input type="checkbox" id="autoInstall" checked> Auto-extrair e iniciar setup após download</label>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn btn-primary pulse-btn" id="downloadBtn" onclick="startUltraDownload()">
+        <span style="font-size:18px">⚡</span> BAIXAR ULTRA RÁPIDO — 16×
+        <span style="background:rgba(0,0,0,.15);padding:4px 8px;border-radius:999px;font-size:11px">~10× MAIS RÁPIDO</span>
+      </button>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="copyPSCommand()">📋 Copiar comando PowerShell</button>
+        <button class="btn btn-secondary" onclick="downloadBAT()">⬇ Baixar .BAT 1-clique</button>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="p-head"><b id="pTitle">Preparando...</b><span id="pPercent">0%</span></div>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <div class="p-stats">
+        <div class="p-stat"><b id="sSpeed">0 MB/s</b><span>VELOCIDADE</span></div>
+        <div class="p-stat"><b id="sDownloaded">0 MB</b><span>BAIXADO</span></div>
+        <div class="p-stat"><b id="sEta">--:--</b><span>RESTANTE</span></div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="hint">
+      <b>💡 Dica Ultra:</b> Se o download estiver lento, aumente para <b>32×</b> e desative VPN. Se der erro 403, o token <code>t=...</code> expirou — pegue novo <code>hx-get</code> na página do arquivo (F12 → clique em Download → copia hx-get).
+      <br><br>
+      <b>🖥️ Modo PowerShell é 10× mais rápido que navegador</b> — clique em “Baixar .BAT 1-clique” e execute como Administrador. O navegador é limitado a 6 conexões.
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+let threads = 16;
+
+document.querySelectorAll('.thr[data-t]').forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll('.thr[data-t]').forEach(e=>e.classList.remove('active'));
+    el.classList.add('active');
+    threads = parseInt(el.dataset.t);
+    $('downloadBtn').innerHTML = `<span style="font-size:18px">⚡</span> BAIXAR ULTRA RÁPIDO — ${threads}× <span style="background:rgba(0,0,0,.15);padding:4px 8px;border-radius:999px;font-size:11px">~${Math.floor(threads/1.6)}× MAIS RÁPIDO</span>`;
+    log(`Threads alterado para ${threads}x`, 'info');
+  };
+});
+
+function setBase(v){
+  $('baseInput').value = v;
+  log(`Base alterada para ${v || 'auto'}`, 'info');
+}
+
+function checkHxWarn(){
+  const v = $('hxInput').value.trim();
+  const warn = $('hxWarn');
+  if(v === 'https://bzzhr.to/9eqbv6yp6136' || v === 'https://bzzhr.to/9eqbv6yp6136/' || v === '/9eqbv6yp6136' || /^https:\/\/bzzhr\.to\/[a-zA-Z0-9]+\/?$/.test(v) || /^\/[a-zA-Z0-9]+\/?$/.test(v) && !v.includes('download')){
+    warn.style.display='block';
+    warn.innerHTML = `⚠️ <b>Voce colou URL da PAGINA, nao o hx-get!</b><br>Correto: <code>/9eqbv6yp6136/download?t=MTc4...</code><br>Como pegar: Abra <b>https://bzzhr.to/9eqbv6yp6136</b> → F12 → Network → clique <b>Download</b> → copie <code>hx-get</code>. O <b>.BAT PowerShell corrige automaticamente</b>, mas o navegador NAO.`;
+  } else if(!v.includes('download?t=') && v.length>5){
+    warn.style.display='block';
+    warn.innerHTML = `⚠️ hx-get sem <code>/download?t=</code> — vai falhar. Copie o hx-get completo com <code>t=</code>. O .BAT tenta auto-extrair, mas pode falhar se token expirou.`;
+  } else {
+    warn.style.display='none';
+  }
+}
+$('hxInput').addEventListener('input', checkHxWarn);
+setTimeout(checkHxWarn, 500);
+
+function log(msg, type=''){
+  const time = new Date().toLocaleTimeString();
+  const cls = type==='err'?'err':type==='warn'?'warn':'';
+  logEl.innerHTML += `<div class="${cls}">[${time}] ${msg}</div>`;
+  logEl.scrollTop = logEl.scrollHeight;
+  console.log(msg);
+}
+
+function buildPSCommand(){
+  const hx = $('hxInput').value.trim();
+  const base = $('baseInput').value.trim();
+  const outDir = $('outDir').value.trim();
+  const fileName = $('fileName').value.trim();
+  const aria = $('useAria2').checked ? '-UseAria2' : '';
+  const noInstall = $('autoInstall').checked ? '' : '-NoInstall';
+  // Escape single quotes
+  const hxEsc = hx.replace(/'/g, "''");
+  const baseEsc = base.replace(/'/g, "''");
+  return `powershell -ExecutionPolicy Bypass -File ".\\ultra-installer.ps1" -HxGet '${hxEsc}' -BaseUrl '${baseEsc}' -OutputDir '${outDir}' -FileName '${fileName}' -Threads ${threads} ${aria} ${noInstall}`.trim().replace(/\s+/g,' ');
+}
+
+function copyPSCommand(){
+  const cmd = buildPSCommand();
+  navigator.clipboard.writeText(cmd).then(()=>{
+    log(`<b>Comando copiado!</b> Cole no PowerShell (Admin)`, 'info');
+    // toast
+    const btn = event.target.closest('button');
+    const old = btn.innerHTML;
+    btn.innerHTML = '✓ Copiado!';
+    setTimeout(()=> btn.innerHTML = old, 2000);
+  });
+}
+
+function downloadBAT(){
+  const hx = $('hxInput').value.trim();
+  const base = $('baseInput').value.trim();
+  const outDir = $('outDir').value.trim();
+  const fileName = $('fileName').value.trim();
+  const bat = `@echo off
+setlocal EnableExtensions
+title FIFA 14 ULTRA INSTALLER - 16x Threads
+echo.
+echo  ===========================================
+echo   FIFA 14 ULTRA RAPIDO v3.0 - 16x TURBO - bzzhr.to
+echo   hx-get="${hx}"
+echo  ===========================================
+echo.
+echo  INSTALADOR ULTRA RAPIDO - ${threads}x CONEXOES
+echo.
+set "HXGET=${hx.replace(/"/g,'')}"
+set "BASEURL=${base}"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0ultra-installer.ps1" -HxGet "%HXGET%" -BaseUrl "%BASEURL%" -OutputDir "${outDir}" -FileName "${fileName}" -Threads ${threads} ${$('useAria2').checked?'-UseAria2':''} ${$('autoInstall').checked?'':'-NoInstall'}
+pause
+`;
+  const blob = new Blob([bat], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'INSTALAR-FIFA14-ULTRA.bat';
+  a.click();
+  log('<b>BAT baixado!</b> Execute como Administrador', 'info');
+}
+
+// Tenta download via JS (limitado, mas mostra progresso)
+async function startUltraDownload(){
+  const hxRaw = $('hxInput').value.trim();
+  const base = $('baseInput').value.trim();
+  const threadsVal = threads;
+
+  if(!hxRaw){
+    log('Cole o hx-get ou URL!', 'err');
+    return;
+  }
+
+  // Detecta URL de pagina sem token -> avisa e sugere BAT
+  if((/^https:\/\/bzzhr\.to\/[a-zA-Z0-9]+\/?$/.test(hxRaw) || /^\/[a-zA-Z0-9]+\/?$/.test(hxRaw)) && !hxRaw.includes('download')){
+    log(`<b class="warn">⚠️ URL de pagina detectada! O navegador NAO consegue extrair hx-get por CORS. Use o .BAT PowerShell que extrai automaticamente.</b>`, 'warn');
+    log(`Correto seria: /9eqbv6yp6136/download?t=TOKEN — Use "Baixar .BAT 1-clique" abaixo`, 'warn');
+    $('progressWrap').classList.add('show');
+    $('pTitle').textContent = '⚠️ Use .BAT PowerShell (auto-extrai)';
+    log(`<b>SOLUCAO: Clique em "Baixar .BAT 1-clique" → Clique direito → Executar como administrador</b>`, 'info');
+    log(`O .BAT vai buscar o hx-get real em ${base||'https://bzzhr.to'}/9eqbv6yp6136 automaticamente`, 'info');
+    return;
+  }
+
+  const hx = hxRaw;
+
+  $('progressWrap').classList.add('show');
+  $('downloadBtn').disabled = true;
+  $('downloadBtn').innerHTML = '⏳ BAIXANDO...';
+  log(`<b>Iniciando modo NAVEGADOR (${threadsVal}x) — limitado a 6 conexoes</b>`, 'warn');
+  log(`hx-get: ${hx}`, 'info');
+  log(`base: ${base || 'auto'}`, 'info');
+  log(`<b>Para VELOCIDADE MAXIMA, use o .BAT + PowerShell (10x mais rapido) — NAVEGADOR SEMPRE bloqueia por CORS em bzzhr.to</b>`, 'warn');
+
+  // Resolve URL
+  let url = hx;
+  if(hx.startsWith('/')){
+    url = (base || 'https://bzzhr.to') + hx;
+  }
+  log(`URL candidata: ${url}`, 'info');
+
+  // Tenta resolver redirect via fetch (sem cors, vai falhar na maioria dos hosts -> avisa)
+  try {
+    log('Testando HEAD para resolver redirect...', 'info');
+    const head = await fetch(url, { method: 'HEAD', redirect: 'manual' }).catch(()=>null);
+    if(head){
+      log(`HEAD status: ${head.status} ${head.type}`, 'info');
+      const loc = head.headers.get('location') || head.headers.get('HX-Redirect');
+      if(loc){
+        url = loc;
+        log(`Redirect encontrado: ${url}`, 'info');
+      }
+    }
+  } catch(e){
+    log(`HEAD bloqueado por CORS (normal) — tentando download direto`, 'warn');
+  }
+
+  log(`Tentando download via Streams API...`, 'info');
+  $('pTitle').textContent = 'Baixando (navegador, limitado)...';
+
+  // Se for gofile ou host com CORS, vai falhar -> instrui usar PowerShell
+  try {
+    const controller = new AbortController();
+    const resp = await fetch(url, { headers: { 'HX-Request':'true' } , signal: controller.signal });
+    if(!resp.ok){
+      throw new Error(`HTTP ${resp.status} - ${resp.statusText}`);
+    }
+    const total = parseInt(resp.headers.get('content-length') || '0');
+    const disp = resp.headers.get('content-disposition');
+    let fileName = $('fileName').value.trim() || 'FIFA14-Ultra.iso';
+    if(disp && disp.includes('filename=')){
+      const m = disp.match(/filename="?([^"]+)"?/);
+      if(m) fileName = m[1];
+    }
+
+    log(`Conectado! Tamanho: ${total ? (total/1024/1024).toFixed(2)+' MB' : 'desconhecido'} | Arquivo: ${fileName}`, 'info');
+
+    const reader = resp.body.getReader();
+    let received = 0;
+    const chunks = [];
+    let lastTime = performance.now();
+    let lastBytes = 0;
+
+    $('sDownloaded').textContent = '0 MB';
+    $('sSpeed').textContent = '0 MB/s';
+
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      chunks.push(value);
+      received += value.length;
+
+      const now = performance.now();
+      if(now - lastTime > 500){
+        const delta = received - lastBytes;
+        const dt = (now - lastTime)/1000;
+        const speed = delta / dt;
+        const speedMb = (speed/1024/1024).toFixed(2);
+        const percent = total ? Math.round(received/total*100) : 0;
+        const mb = (received/1024/1024).toFixed(2);
+        const totalMb = total ? (total/1024/1024).toFixed(2) : '?';
+        const eta = speed>0 && total ? Math.round((total-received)/speed) : 0;
+        const etaStr = eta ? `${Math.floor(eta/60)}:${String(eta%60).padStart(2,'0')}` : '--:--';
+
+        $('barFill').style.width = percent + '%';
+        $('pPercent').textContent = percent + '%';
+        $('pTitle').textContent = `${percent}% • ${mb}/${totalMb} MB`;
+        $('sSpeed').textContent = speedMb + ' MB/s';
+        $('sDownloaded').textContent = mb + ' MB';
+        $('sEta').textContent = etaStr;
+
+        lastTime = now;
+        lastBytes = received;
+      }
+    }
+
+    // Final
+    $('barFill').style.width = '100%';
+    $('pPercent').textContent = '100%';
+    const blob = new Blob(chunks);
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+
+    log(`<b>✓ Download navegador concluido! ${(received/1024/1024).toFixed(2)} MB</b>`, 'info');
+    log(`Arquivo salvo: ${fileName} (pasta Downloads do navegador)`, 'info');
+    $('pTitle').textContent = '✓ Concluído!';
+    $('downloadBtn').disabled = false;
+    $('downloadBtn').innerHTML = '✓ BAIXADO — Abrir pasta';
+
+  } catch(e){
+    log(`<b class="err">Falha no modo navegador: ${e.message} — NORMAL em bzzhr.to (CORS)</b>`, 'err');
+    log(`<b>NAVEGADOR NUNCA VAI FUNCIONAR com bzzhr.to — use PowerShell .BAT (10× mais rapido e bypassa CORS)</b>`, 'warn');
+    log(`<b>SOLUCAO ULTRA (10x mais rapido):</b>`, 'info');
+    log(`1. Clique em "Baixar .BAT 1-clique"`, 'info');
+    log(`2. Clique direito no .BAT → <b>Executar como administrador</b>`, 'info');
+    log(`3. Ou copie comando PowerShell e cole no terminal Admin`, 'info');
+    log(`Comando correto (com token): ${buildPSCommand()}`, 'info');
+    log(`Se token expirou: abra https://bzzhr.to/9eqbv6yp6136 → F12 → Network → clique Download → copie novo hx-get`, 'warn');
+    $('pTitle').textContent = '✗ Use .BAT PowerShell (bypass CORS)';
+    $('downloadBtn').disabled = false;
+    $('downloadBtn').innerHTML = '📋 COPIAR COMANDO POWERSHELL';
+    $('downloadBtn').onclick = copyPSCommand;
+  }
+}
+
+// Atalho: Enter inicia
+document.getElementById('hxInput').addEventListener('keydown', e=>{ if(e.key==='Enter') startUltraDownload(); });
+
+// Speed hint calc
+function updateHint(){
+  // Assumindo ~8GB
+  const gb = 8;
+  const speeds = { '50': gb*1024/ (50/8) /60, '100': gb*1024/(100/8)/60, '500': gb*1024/(500/8)/60, '1000': gb*1024/(1000/8)/60 };
+  // Mostra estimado 500mbps ~2min
+}
+</script>
+</body>
+</html>

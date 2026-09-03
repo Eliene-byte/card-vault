@@ -1,0 +1,25 @@
+{
+  "appId": "com.cardvault.app",
+  "productName": "Card Vault",
+  "copyright": "MIT © Card Vault contributors",
+  "directories": { "output": "release", "buildResources": "build" },
+  "files": ["dist/**", "electron/**", "package.json"],
+  "extraResources": [{ "from": "build/icon.png", "to": "icon.png" }],
+  "win": {
+    "target": [{ "target": "nsis", "arch": ["x64"] }, { "target": "portable", "arch": ["x64"] }],
+    "artifactName": "Card-Vault-${version}-${arch}.${ext}",
+    "requestedExecutionLevel": "asInvoker",
+    "signAndEditExecutable": false,
+    "icon": "build/icon.ico"
+  },
+  "mac": { "target": ["dmg", "zip"], "category": "public.app-category.finance" },
+  "linux": { "target": ["AppImage", "deb"], "category": "Office" },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Card Vault"
+  },
+  "portable": { "requestExecutionLevel": "user" }
+}
