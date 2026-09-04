@@ -236,7 +236,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .bank-sec{font-size:10px;letter-spacing:.12em;font-weight:800;color:var(--muted2);padding:10px 12px 4px;position:sticky;top:0;background:var(--bg3)}
 .modal-foot{padding:0 22px 22px;display:flex;gap:10px}
 .modal-foot .btn{flex:1;padding:13px}
-.preview-mini{border-radius:18px;padding:22px 22px 20px;color:#fff;width:100%;max-width:440px;margin:0 auto;aspect-ratio:1.586;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.12);position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22)}
+.preview-mini{border-radius:18px;padding:22px 22px 20px;color:#fff;width:100%;max-width:440px;margin:0 auto;aspect-ratio:1.586;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.12);position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22)}
+.flip{flex-shrink:0}
 /* ===== FLIP 3D (verso com tarja + CVV) ===== */
 .flip{perspective:1600px;max-width:440px;margin:0 auto}
 .flip-inner{position:relative;transform-style:preserve-3d;transition:transform .65s var(--spring)}
