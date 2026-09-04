@@ -22,7 +22,10 @@ jobs:
       - run: dir dist
       - name: Defender exclusion (evita travar o .exe no build)
         run: Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE
-      - run: npx electron-builder --win portable nsis --x64 --publish never
+      - run: echo "VERSION=$(node -p "require('./package.json').version")" >> $env:GITHUB_ENV
+        shell: pwsh
+      - run: npx electron-builder --win portable --x64 --publish never
+      - run: npx electron-builder --win nsis --x64 --publish never -c.win.artifactName="Card-Vault-Setup-${{ env.VERSION }}-x64.exe"
       - uses: actions/upload-artifact@v4
         with:
           name: windows
