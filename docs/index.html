@@ -3,10 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Card Vault — Cofre de Cartões Open Source</title>
-<meta name="description" content="Card Vault: cofre de cartões 100% gratuito, open source MIT, offline-first, AES-GCM local. Windows, Linux e Android." />
+<title>Card Vault — Cofre de Cartões Grátis e Open Source | Windows, Linux, Android</title>
+<meta name="description" content="Card Vault: guarde seus cartões com segurança militar (AES-GCM), visual fiel ao banco e validação total. 100% grátis, open source, offline. Baixe para Windows, Linux e Android." />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://eliene-byte.github.io/card-vault/" />
 <meta name="theme-color" content="#EFEBE3" />
 <link rel="icon" type="image/png" href="icon.png" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Card Vault" />
+<meta property="og:title" content="Card Vault — Cofre de Cartões Grátis e Open Source" />
+<meta property="og:description" content="Segurança AES-GCM, bancos do mundo todo, PT/EN/ES. Windows, Linux e Android. Sem conta, sem nuvem, sem custo." />
+<meta property="og:url" content="https://eliene-byte.github.io/card-vault/" />
+<meta property="og:image" content="https://eliene-byte.github.io/card-vault/screenshot-app.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Card Vault — Cofre de Cartões Grátis" />
+<meta name="twitter:description" content="Offline-first, open source MIT, AES-GCM local. Baixe grátis." />
+<meta name="twitter:image" content="https://eliene-byte.github.io/card-vault/screenshot-app.png" />
+<link rel="preconnect" href="https://api.github.com" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Card Vault","applicationCategory":"FinanceApplication","operatingSystem":["Windows","Linux","Android"],"softwareVersion":"1.8.1","inLanguage":"pt-BR","license":"https://opensource.org/licenses/MIT","author":{"@type":"Organization","name":"Card Vault contributors"},"offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"downloadUrl":"https://github.com/Eliene-byte/card-vault/releases/latest","screenshot":["https://eliene-byte.github.io/card-vault/screenshot-app.png","https://eliene-byte.github.io/card-vault/screenshot-login.png"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"O Card Vault é realmente grátis?","acceptedAnswer":{"@type":"Answer","text":"Sim, 100% grátis e open source sob licença MIT, sem conta, sem assinatura e sem recursos pagos."}},
+{"@type":"Question","name":"Meus cartões ficam salvos na nuvem?","acceptedAnswer":{"@type":"Answer","text":"Não. Tudo fica cifrado com AES-GCM 256 no seu próprio aparelho. As únicas chamadas de rede são as listas públicas de bancos."}},
+{"@type":"Question","name":"Quais sistemas são suportados?","acceptedAnswer":{"@type":"Answer","text":"Windows (portable e instalador), Linux (AppImage e .deb) e Android (APK), além da versão web instalável PWA."}},
+{"@type":"Question","name":"Preciso de conta ou chave de API?","acceptedAnswer":{"@type":"Answer","text":"Não. A lista de bancos usa APIs públicas gratuitas que dispensam chave, e o cofre funciona offline."}},
+{"@type":"Question","name":"Como recebo atualizações?","acceptedAnswer":{"@type":"Answer","text":"O próprio aplicativo avisa quando há versão nova e baixa o instalador de dentro dele."}}
+]}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#EFEBE3;--card:#F7F5F0;--line:rgba(62,50,38,.12);--line2:rgba(62,50,38,.22);--text:#1F1E1D;--muted:#6F6A5E;--muted2:#A8A294;--accent:#C15F3C;--serif:Georgia,'Times New Roman',serif;--sans:Inter,"Segoe UI",-apple-system,Roboto,Arial,sans-serif;--spring:cubic-bezier(.22,1,.36,1)}
@@ -122,6 +147,15 @@ footer a{color:var(--accent);text-decoration:none}
   <section class="secure">
     <h2>Sem conta. Sem nuvem. Sem rastreadores.</h2>
     <p>As únicas chamadas de rede são as listas públicas de bancos. Seus cartões nunca saem do aparelho.</p>
+  </section>
+  <section class="hist" id="faq">
+    <h3>Perguntas frequentes</h3>
+    <p>Tudo o que você precisa saber sobre o cofre de cartões Card Vault.</p>
+    <details class="rel"><summary><span>O Card Vault é realmente grátis?</span></summary><div class="assets"><p style="font-size:13.5px;color:var(--muted)">Sim — 100% grátis e open source sob licença MIT. Sem conta, sem assinatura, sem recursos pagos e sem anúncios.</p></div></details>
+    <details class="rel"><summary><span>Meus cartões ficam salvos na nuvem?</span></summary><div class="assets"><p style="font-size:13.5px;color:var(--muted)">Não. Tudo fica cifrado com AES-GCM 256 (chave PBKDF2 da sua senha-mestra) no seu próprio aparelho.</p></div></details>
+    <details class="rel"><summary><span>Quais sistemas são suportados?</span></summary><div class="assets"><p style="font-size:13.5px;color:var(--muted)">Windows (portable e instalador), Linux (AppImage e .deb), Android (APK) e qualquer sistema via PWA instalável.</p></div></details>
+    <details class="rel"><summary><span>Preciso de conta ou chave de API?</span></summary><div class="assets"><p style="font-size:13.5px;color:var(--muted)">Não. Os bancos vêm de APIs públicas gratuitas (BrasilAPI + GLEIF) e o cofre funciona até offline.</p></div></details>
+    <details class="rel"><summary><span>Como recebo atualizações?</span></summary><div class="assets"><p style="font-size:13.5px;color:var(--muted)">O próprio aplicativo avisa quando há versão nova e baixa o instalador de dentro dele, em todas as plataformas.</p></div></details>
   </section>
   <footer><span>Card Vault • MIT © contribuidores</span><span><a href="https://github.com/Eliene-byte/card-vault">GitHub</a> • <a href="https://github.com/Eliene-byte/card-vault/releases">Todas as releases</a></span></footer>
 </div>
