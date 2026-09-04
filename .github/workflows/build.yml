@@ -22,10 +22,11 @@ jobs:
       - run: dir dist
       - name: Defender exclusion (evita travar o .exe no build)
         run: Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE
-      - run: echo "VERSION=$(node -p "require('./package.json').version")" >> $env:GITHUB_ENV
-        shell: pwsh
       - run: npx electron-builder --win portable --x64 --publish never
-      - run: npx electron-builder --win nsis --x64 --publish never -c.win.artifactName="Card-Vault-Setup-${{ env.VERSION }}-x64.exe"
+      - name: Setup com nome próprio (via arquivo, sem -c inline)
+        run: |
+          node -e "const fs=require('fs');const c=require('./electron-builder.json');const v=require('./package.json').version;c.win={...c.win,artifactName:'Card-Vault-Setup-'+v+'-x64.exe'};fs.writeFileSync('eb-setup.json',JSON.stringify(c));console.log('artifact:',c.win.artifactName)"
+          npx electron-builder --win nsis --x64 --publish never --config eb-setup.json
       - uses: actions/upload-artifact@v4
         with:
           name: windows
