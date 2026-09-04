@@ -26,6 +26,7 @@
 - 🏦 **Todos os bancos do mundo**: BrasilAPI (350+ BR, grátis sem chave) + **GLEIF ao vivo** (base global oficial, grátis sem chave) + lista mundial offline
 - 🔍 **Busca unificada** por nome, código ou país (🇧🇷🇺🇸🇪🇺🇯🇵…)
 - ✅ **Validação 100% segura**: Luhn + tamanho por bandeira (Visa, Mastercard, Amex 15, Diners 14, Elo, Hipercard, Discover, JCB, Aura, UnionPay), CVV por bandeira (Amex 4), validade (vencido/futuro absurdo barrados), alerta de número de teste
+- 🔄 **Verso do cartão em 3D** (tarja + CVV com revelar temporário), **ordenar** (recentes/A–Z/banco/vencimento), **alerta de vencimento** (⚠ 3 meses), **copiar ficha completa**, animações spring 60fps
 - 🔒 **Login com senha-mestra** sempre ao abrir + **throttling anti-força-bruta** (atraso progressivo + shake), auto-bloqueio, clipboard auto-limpa, CVV/número ocultos com revelar temporário
 - 🌐 **PT / EN / ES** com 1 clique (🌐 no topo, na tela de login e nas Configurações)
 - 🎨 **Ultra clean minimalista**, modo claro/escuro, animações spring 60fps, atalhos (`/` busca, `Esc` fecha)
