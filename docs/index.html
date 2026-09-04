@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Card Vault — Cofre de Cartões Open Source</title>
+<meta name="description" content="Card Vault: cofre de cartões 100% gratuito, open source MIT, offline-first, AES-GCM local. Windows, Linux e Android." />
+<meta name="theme-color" content="#EFEBE3" />
+<link rel="icon" type="image/png" href="icon.png" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#EFEBE3;--card:#F7F5F0;--line:rgba(62,50,38,.12);--text:#1F1E1D;--muted:#6F6A5E;--accent:#C15F3C;--serif:Georgia,'Times New Roman',serif;--sans:Inter,"Segoe UI",-apple-system,Roboto,Arial,sans-serif}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px}
+nav{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:10}
+nav .wrap{display:flex;align-items:center;gap:10px;height:62px}
+nav img{width:30px;height:30px;border-radius:9px}
+nav b{font-family:var(--serif);font-weight:500;font-size:18px}
+nav a.btn{margin-left:auto}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--text);color:var(--card);border:none;border-radius:10px;padding:12px 20px;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit}
+.btn:hover{opacity:.88}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.hero{text-align:center;padding:72px 0 40px}
+.hero .logo{width:72px;height:72px;border-radius:20px;box-shadow:0 14px 34px rgba(62,50,38,.2)}
+.hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,6vw,56px);letter-spacing:-.02em;margin:22px 0 12px}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p{color:var(--muted);max-width:560px;margin:0 auto;font-size:16px}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.badges span{font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:99px;padding:6px 13px;color:var(--muted);background:var(--card)}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:34px 0 10px}
+.dl a{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;text-decoration:none;color:var(--text);transition:.15s;display:block}
+.dl a:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(62,50,38,.12)}
+.dl .os{font-size:26px}
+.dl b{display:block;margin:8px 0 2px;font-size:15px}
+.dl small{color:var(--muted);font-size:12.5px}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:44px 0}
+.shots img{width:100%;border-radius:16px;border:1px solid var(--line);box-shadow:0 14px 40px rgba(62,50,38,.14)}
+.shots figure figcaption{text-align:center;color:var(--muted);font-size:12.5px;margin-top:8px}
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:10px 0 44px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.feat .ic{font-size:22px}
+.feat h3{font-family:var(--serif);font-weight:500;font-size:17px;margin:8px 0 4px}
+.feat p{font-size:13px;color:var(--muted)}
+.secure{background:var(--text);color:var(--card);border-radius:20px;padding:34px;margin-bottom:44px;text-align:center}
+.secure h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:8px}
+.secure p{opacity:.75;font-size:14px;max-width:600px;margin:0 auto}
+footer{border-top:1px solid var(--line);padding:26px 0 60px;color:var(--muted);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:640px){.shots{grid-template-columns:1fr}.hero{padding:48px 0 28px}}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><img src="icon.png" alt="Card Vault" /><b>Card Vault</b><a class="btn" href="https://github.com/Eliene-byte/card-vault/releases/latest">⬇ Baixar</a></div></nav>
+<div class="wrap">
+  <header class="hero">
+    <img class="logo" src="icon.png" alt="Card Vault" />
+    <h1>Seus cartões, <em>guardados de verdade.</em></h1>
+    <p>Cofre 100% gratuito e open source (MIT). Visual fiel ao banco, bandeira auto-detectada, validação total e criptografia AES-GCM — nada sai do seu aparelho.</p>
+    <div class="badges"><span>MIT open source</span><span>Offline-first</span><span>PT • EN • ES</span><span>AES-GCM 256</span><span>Win • Linux • Android</span></div>
+    <div class="dl">
+      <a href="https://github.com/Eliene-byte/card-vault/releases/latest"><div class="os">🪟</div><b>Windows</b><small>Portable + instalador (.exe)</small></a>
+      <a href="https://github.com/Eliene-byte/card-vault/releases/latest"><div class="os">🐧</div><b>Linux</b><small>AppImage + .deb</small></a>
+      <a href="https://github.com/Eliene-byte/card-vault/releases/latest"><div class="os">📱</div><b>Android</b><small>APK direto</small></a>
+      <a href="https://github.com/Eliene-byte/card-vault"><div class="os">◈</div><b>Código-fonte</b><small>GitHub • MIT</small></a>
+    </div>
+  </header>
+  <section class="shots">
+    <figure><img src="screenshot-app.png" alt="Cofre com cartões" /><figcaption>Cofre com cartões fiéis aos bancos</figcaption></figure>
+    <figure><img src="screenshot-login.png" alt="Tela de acesso" /><figcaption>Acesso com senha-mestra</figcaption></figure>
+  </section>
+  <section class="feats">
+    <div class="feat"><div class="ic">💳</div><h3>Bancos do mundo todo</h3><p>BrasilAPI + GLEIF ao vivo (grátis, sem chave) e top bancos offline com bandeira do país.</p></div>
+    <div class="feat"><div class="ic">✅</div><h3>Validação real</h3><p>Luhn, tamanho por bandeira, CVV por bandeira com análise de força e validade.</p></div>
+    <div class="feat"><div class="ic">🔒</div><h3>Segurança sênior</h3><p>Senha-mestra + PBKDF2 250k + AES-GCM, anti-força-bruta, auto-bloqueio e backup cifrado.</p></div>
+    <div class="feat"><div class="ic">⬆</div><h3>Atualiza sozinho</h3><p>O app avisa e baixa a nova versão de dentro dele, em todas as plataformas.</p></div>
+  </section>
+  <section class="secure">
+    <h2>Sem conta. Sem nuvem. Sem rastreadores.</h2>
+    <p>As únicas chamadas de rede são as listas públicas de bancos. Seus cartões nunca saem do aparelho.</p>
+  </section>
+  <footer><span>Card Vault • MIT © contribuidores</span><a href="https://github.com/Eliene-byte/card-vault">github.com/Eliene-byte/card-vault</a></footer>
+</div>
+</body>
+</html>

@@ -9,4 +9,7 @@ contextBridge.exposeInMainWorld('vaultNative', {
   unprotect: (b64) => ipcRenderer.invoke('vault:unprotect', b64),
   encryptionAvailable: () => ipcRenderer.invoke('vault:encryption-available'),
   clearClipboard: () => ipcRenderer.invoke('vault:clear-clipboard'),
+  appVersion: () => ipcRenderer.invoke('vault:app-version'),
+  openUrl: (url) => ipcRenderer.invoke('vault:open-url', url),
+  downloadUpdate: (url, name) => ipcRenderer.invoke('vault:download-update', { url, name }),
 });

@@ -102,6 +102,51 @@ ipcMain.handle('vault:clear-clipboard', async () => {
   }
 });
 
+ipcMain.handle('vault:app-version', () => app.getVersion());
+
+ipcMain.handle('vault:open-url', (_, url) => {
+  if (typeof url === 'string' && url.startsWith('https://github.com/Eliene-byte/card-vault/')) {
+    shell.openExternal(url);
+    return { ok: true };
+  }
+  return { ok: false };
+});
+
+// Baixa o instalador novo para a pasta temporária e abre (só do nosso GitHub).
+ipcMain.handle('vault:download-update', async (_, { url, name }) => {
+  try {
+    if (typeof url !== 'string' || (!url.startsWith('https://github.com/Eliene-byte/card-vault/') && !url.startsWith('https://objects.githubusercontent.com/'))) return { ok: false };
+    const { net } = await import('electron');
+    const fs = await import('fs');
+    const os = await import('os');
+    const nodePath = (await import('path')).default;
+    const safeName = String(name || 'update.bin').replace(/[^A-Za-z0-9._-]/g, '_');
+    const dest = nodePath.join(os.tmpdir(), safeName);
+    const get = (u, hops) => new Promise((res, rej) => {
+      if (hops > 4) return rej(new Error('redirects'));
+      const req = net.request(u);
+      req.on('response', r => {
+        if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+          r.resume?.();
+          return res(get(Array.isArray(r.headers.location) ? r.headers.location[0] : r.headers.location, hops + 1));
+        }
+        if (r.statusCode !== 200) return rej(new Error('http ' + r.statusCode));
+        const out = fs.createWriteStream(dest);
+        r.on('data', c => out.write(c));
+        r.on('end', () => out.end(res));
+        r.on('error', rej);
+      });
+      req.on('error', rej);
+      req.end();
+    });
+    await get(url, 0);
+    shell.openPath(dest);
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
   app.on('activate', () => {

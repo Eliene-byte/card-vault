@@ -1,5 +1,7 @@
 # ◈ Card Vault — Cofre de Cartões Open Source
 
+> 🌐 **Site oficial:** https://eliene-byte.github.io/card-vault/ — para ativar: GitHub → repo **Settings → Pages → Deploy from a branch → `main` → `/docs` → Save (leva ~1 min).
+
 ![MIT](https://img.shields.io/badge/license-MIT-green) ![offline](https://img.shields.io/badge/offline--first-yes-blue) ![i18n](https://img.shields.io/badge/lang-PT%20%7C%20EN%20%7C%20ES-orange) ![AES](https://img.shields.io/badge/crypto-AES--GCM%20256-red)
 
 **100% gratuito • open source MIT • offline-first • PT/EN/ES.** Guarde seus cartões com visual fiel ao banco, bandeira auto-detectada e validação total (número Luhn + tamanho por bandeira, CVV por bandeira, validade) — tudo cifrado com **AES-GCM 256 + PBKDF2 250.000 iterações**. Nada sai do seu aparelho.
