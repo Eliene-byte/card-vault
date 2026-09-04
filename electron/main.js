@@ -24,7 +24,7 @@ function createWindow() {
     height: 800,
     minWidth: 980,
     minHeight: 640,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: '#EFEBE3',
     show: false, // aparece de uma vez em ready-to-show, sem "piscar"
     autoHideMenuBar: true,
     title: 'Card Vault',

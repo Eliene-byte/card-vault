@@ -8,8 +8,8 @@ import { fileURLToPath } from 'url';
 const outDir = join(dirname(fileURLToPath(import.meta.url)));
 mkdirSync(outDir, { recursive: true });
 
-const C_TOP = [157, 107, 243]; // #9D6BF3
-const C_BOT = [74, 86, 226];   // #4A56E2
+const C_TOP = [217, 119, 87]; // terracota Claude
+const C_BOT = [154, 71, 45];
 const WHITE = [255, 255, 255];
 const GOLD = [232, 190, 90];
 
@@ -56,7 +56,7 @@ function render(S) {
   }
   // faixa do cartão (violeta)
   const fx0 = cx0 + S * 0.045, fx1 = cx1 - S * 0.045, fy0 = cy0 + S * 0.045, fy1 = fy0 + S * 0.045;
-  for (let y = Math.floor(fy0); y < fy1; y++) for (let x = Math.floor(fx0); x < fx1; x++) set(x, y, [110, 124, 243]);
+  for (let y = Math.floor(fy0); y < fy1; y++) for (let x = Math.floor(fx0); x < fx1; x++) set(x, y, [193, 95, 60]);
   // chip dourado (círculo)
   const chx = cx0 + S * 0.13, chy = (cy0 + cy1) / 2 + S * 0.045, chr = S * 0.042;
   for (let y = Math.floor(chy - chr); y < chy + chr; y++) for (let x = Math.floor(chx - chr); x < chx + chr; x++) {
